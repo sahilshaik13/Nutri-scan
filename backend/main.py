@@ -7,6 +7,12 @@ import json
 import re
 import asyncio
 
+import os
+from dotenv import load_dotenv
+
+# Add this line to load the variables from the .env file!
+load_dotenv() 
+
 app = fastapi.FastAPI()
 
 app.add_middleware(
@@ -36,6 +42,19 @@ class QuickAnalyzeRequest(BaseModel):
     image_base64: str
     mime_type: str = "image/jpeg"
     health_profile: dict | None = None
+
+@app.get("/api/health")
+async def health() -> dict[str, str]:
+    return {"status": "ok", "gemini_configured": bool(GEMINI_API_KEY)}
+
+# 👇 Add this new ping endpoint right here 👇
+@app.get("/api/ping")
+async def ping():
+    """
+    Lightweight endpoint specifically designed for cron jobs.
+    Returns a tiny payload to keep the server awake without burning resources.
+    """
+    return {"ping": "pong", "status": "awake"}
 
 def parse_json_response(response_text: str) -> dict:
     """Extract and parse JSON from response text"""
