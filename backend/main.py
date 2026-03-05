@@ -43,8 +43,10 @@ class QuickAnalyzeRequest(BaseModel):
     mime_type: str = "image/jpeg"
     health_profile: dict | None = None
 
+from typing import Any # Add this to your imports at the top
+
 @app.get("/api/health")
-async def health() -> dict[str, str]:
+async def health() -> dict[str, Any]: # Changed str to Any
     return {"status": "ok", "gemini_configured": bool(GEMINI_API_KEY)}
 
 # 👇 Add this new ping endpoint right here 👇
