@@ -5,8 +5,22 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useState, Suspense } from 'react'
+
+// We create a tiny sub-component to read the URL parameters safely
+function VerificationMessage() {
+  const searchParams = useSearchParams()
+  const isVerified = searchParams.get('verified') === 'true'
+
+  if (!isVerified) return null
+
+  return (
+    <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm font-medium text-green-500">
+      ✅ Your email has been successfully verified! Please log in below.
+    </div>
+  )
+}
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -74,7 +88,7 @@ export default function LoginPage() {
       {/* Main Content */}
       <main className="mx-auto flex w-full max-w-[480px] flex-1 flex-col items-center justify-start px-6 pt-10">
         {/* Header Section */}
-        <div className="mb-10 w-full text-center">
+        <div className="mb-6 w-full text-center">
           <h1 className="mb-3 text-[32px] font-extrabold leading-tight tracking-tight">
             Welcome back
           </h1>
@@ -82,6 +96,15 @@ export default function LoginPage() {
             Sign in to continue your healthy journey
           </p>
         </div>
+
+        {/* We wrap the verification message in Suspense. 
+          If the URL has ?verified=true, it shows the green success banner here! 
+        */}
+        <Suspense fallback={null}>
+          <div className="w-full">
+            <VerificationMessage />
+          </div>
+        </Suspense>
 
         {/* Divider */}
         <div className="mb-8 flex w-full items-center">
