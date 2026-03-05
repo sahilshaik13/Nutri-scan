@@ -5,7 +5,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Leaf, Mail } from 'lucide-react'
+import { Leaf, Mail, ArrowLeft } from 'lucide-react'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 
 export default function SignUpSuccessPage() {
   return (
@@ -28,11 +30,19 @@ export default function SignUpSuccessPage() {
                 {"We've sent you a confirmation link"}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col gap-6">
               <p className="text-center text-sm text-muted-foreground">
                 Please check your email and click the confirmation link to activate your account. 
                 Once confirmed, you can start scanning your food and tracking nutrition.
               </p>
+              
+              {/* Back to Home Button added here */}
+              <Button asChild variant="outline" className="w-full">
+                <Link href="/">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Home
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </div>
