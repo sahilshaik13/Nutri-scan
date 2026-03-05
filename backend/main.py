@@ -15,11 +15,12 @@ load_dotenv()
 
 app = fastapi.FastAPI()
 
+from fastapi.middleware.cors import CORSMiddleware # Make sure this is imported at the top
+
 app.add_middleware(
-    fastapi.middleware.cors.CORSMiddleware,
-    # Replace the "*" with your actual live Vercel frontend URL
-    allow_origins=["https://nutri-scan-848r.vercel.app", "http://localhost:3000"], 
-    allow_credentials=False,
+    CORSMiddleware,
+    allow_origins=["*"],      # Safely allow Vercel, Localhost, or any branch preview
+    allow_credentials=False,  # CRITICAL: Must be False when using "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
