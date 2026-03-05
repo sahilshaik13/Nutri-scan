@@ -19,7 +19,7 @@ app.add_middleware(
     fastapi.middleware.cors.CORSMiddleware,
     # Replace the "*" with your actual live Vercel frontend URL
     allow_origins=["https://nutri-scan-848r.vercel.app", "http://localhost:3000"], 
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
