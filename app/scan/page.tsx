@@ -72,6 +72,10 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 
 export default function ScanPage() {
   const router = useRouter()
+  // Add this line! It uses your cloud URL if available, otherwise defaults to local FastAPI
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  
+  // ... rest of your state variables ...
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
@@ -116,7 +120,7 @@ export default function ScanPage() {
     console.log('[v0] MIME type:', type)
 
     try {
-      const response = await fetch('/api/analyze-image', {
+      const response = await fetch('${API_BASE_URL}/api/analyze-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -154,7 +158,7 @@ export default function ScanPage() {
   const handleQuickAnalysis = async (imageData: string, type: string) => {
     setStep('calculating')
     try {
-      const response = await fetch('/api/quick-analyze', {
+      const response = await fetch('${API_BASE_URL}/api/quick-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -182,7 +186,7 @@ export default function ScanPage() {
     
     setStep('calculating')
     try {
-      const response = await fetch('/api/calculate-nutrition', {
+      const response = await fetch('${API_BASE_URL}/api/calculate-nutrition', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
