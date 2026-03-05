@@ -73,7 +73,7 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 export default function ScanPage() {
   const router = useRouter()
   // Add this line! It uses your cloud URL if available, otherwise defaults to local FastAPI
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
   
   // ... rest of your state variables ...
   const [step, setStep] = useState<ScanStep>('capture')
