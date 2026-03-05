@@ -129,7 +129,7 @@ export function AnalysisQuestions({
               onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
               className="space-y-2"
             >
-              {currentQuestion.options.map((option) => (
+              {currentQuestion.options?.map((option) => (
                 <div 
                   key={option} 
                   className={`flex items-center space-x-3 rounded-xl border p-4 transition-all ${
