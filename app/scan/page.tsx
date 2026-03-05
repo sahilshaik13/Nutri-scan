@@ -441,7 +441,7 @@ export default function ScanPage() {
               foodName={initialAnalysis.food_name}
               questions={initialAnalysis.questions}
               onSubmit={handleQuestionsSubmit}
-              isLoading={step === 'calculating'}
+              isLoading={false} 
             />
           </div>
         )}
