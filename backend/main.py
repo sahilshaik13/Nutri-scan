@@ -6,16 +6,14 @@ import os
 import json
 import re
 import asyncio
-
-import os
+from typing import Any
 from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
-# Add this line to load the variables from the .env file!
+# Load the variables from the .env file
 load_dotenv() 
 
 app = fastapi.FastAPI()
-
-from fastapi.middleware.cors import CORSMiddleware # Make sure this is imported at the top
 
 app.add_middleware(
     CORSMiddleware,
@@ -26,7 +24,14 @@ app.add_middleware(
 )
 
 # Gemini API configuration
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+API_KEYS = [
+    os.environ.get("GEMINI_API_KEY_1"),
+    os.environ.get("GEMINI_API_KEY_2"),
+    os.environ.get("GEMINI_API_KEY_3"),
+    os.environ.get("GEMINI_API_KEY_4"),
+]
+# Clean the list to remove any None values if you haven't set all 4 yet
+VALID_API_KEYS = [key for key in API_KEYS if key]
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
 class ImageAnalysisRequest(BaseModel):
@@ -45,24 +50,13 @@ class QuickAnalyzeRequest(BaseModel):
     mime_type: str = "image/jpeg"
     health_profile: dict | None = None
 
-from typing import Any # Add this to your imports at the top
-
-@app.get("/api/health")
-async def health() -> dict[str, Any]: # Changed str to Any
-    return {"status": "ok", "gemini_configured": bool(GEMINI_API_KEY)}
-
-# 👇 Add this new ping endpoint right here 👇
-@app.get("/api/ping")
-async def ping():
-    """
-    Lightweight endpoint specifically designed for cron jobs.
-    Returns a tiny payload to keep the server awake without burning resources.
-    """
-    return {"ping": "pong", "status": "awake"}
+# --- Helper Functions ---
 
 def parse_json_response(response_text: str) -> dict:
     """Extract and parse JSON from response text"""
-    json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+    # Using format strings to avoid markdown parser issues with triple backticks
+    pattern = r"`{3}" + r"(?:json)?\s*([\s\S]*?)\s*" + r"`{3}"
+    json_match = re.search(pattern, response_text)
     if json_match:
         response_text = json_match.group(1)
     
@@ -88,12 +82,10 @@ def build_health_context(health_profile: dict | None) -> str:
         return "\n\nUser Health Profile:\n" + "\n".join(profile_parts)
     return ""
 
-async def call_gemini_api(contents: list, max_retries: int = 3) -> str:
-    """Call Gemini API with retry logic for rate limiting"""
-    if not GEMINI_API_KEY:
-        raise fastapi.HTTPException(status_code=500, detail="GEMINI_API_KEY not configured")
-    
-    url = f"{GEMINI_API_URL}?key={GEMINI_API_KEY}"
+async def call_gemini_api(contents: list, max_retries: int = 2) -> str:
+    """Call Gemini API with automatic Key Rotation and retry logic"""
+    if not VALID_API_KEYS:
+        raise fastapi.HTTPException(status_code=500, detail="No GEMINI_API_KEYS configured")
     
     payload = {
         "contents": contents,
@@ -107,42 +99,109 @@ async def call_gemini_api(contents: list, max_retries: int = 3) -> str:
     
     last_error = None
     
-    for attempt in range(max_retries):
-        try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                response = await client.post(url, json=payload)
+    # Outer Loop: Try each key one by one
+    for key_index, current_key in enumerate(VALID_API_KEYS):
+        url = f"{GEMINI_API_URL}?key={current_key}"
+        
+        # Inner Loop: Retry network hiccups for the current key
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    response = await client.post(url, json=payload)
+                    
+                    # 429 = Rate Limit / Quota Exhausted
+                    if response.status_code == 429:
+                        print(f"Key {key_index + 1} hit rate limit (429). Rotating to next key...")
+                        break # Break inner loop to switch to the NEXT API key
+                    
+                    # Other API errors (e.g. 400 Bad Request)
+                    if response.status_code != 200:
+                        last_error = f"API Error {response.status_code}: {response.text}"
+                        print(f"Key {key_index + 1} failed: {response.status_code}. Rotating...")
+                        break
+                    
+                    # Success! Parse and return.
+                    result = response.json()
+                    
+                    # Catch sneaky quota errors hidden inside a 200 OK
+                    if "error" in result:
+                        print(f"Key {key_index + 1} returned an embedded error. Rotating...")
+                        break
+
+                    if "candidates" not in result or not result["candidates"]:
+                        raise fastapi.HTTPException(status_code=500, detail="Empty response from Gemini")
+                    
+                    return result["candidates"][0]["content"]["parts"][0]["text"]
+                    
+            except httpx.TimeoutException:
+                last_error = "Request timed out"
+                await asyncio.sleep(2)
+            except Exception as e:
+                last_error = str(e)
+                await asyncio.sleep(2)
                 
-                if response.status_code == 429:
-                    wait_time = (2 ** attempt) * 2
-                    await asyncio.sleep(wait_time)
-                    continue
-                
-                if response.status_code != 200:
-                    error_detail = response.text
-                    raise fastapi.HTTPException(status_code=500, detail=f"Gemini API error: {response.status_code}")
-                
-                result = response.json()
-                
-                if "candidates" not in result or len(result["candidates"]) == 0:
-                    raise fastapi.HTTPException(status_code=500, detail="No response from Gemini")
-                
-                text = result["candidates"][0]["content"]["parts"][0]["text"]
-                return text
-                
-        except httpx.TimeoutException:
-            last_error = "Request timed out"
-            await asyncio.sleep(2)
-        except fastapi.HTTPException:
-            raise
-        except Exception as e:
-            last_error = str(e)
-            await asyncio.sleep(2)
-    
-    raise fastapi.HTTPException(status_code=500, detail=f"Failed after {max_retries} attempts: {last_error}")
+    # If we get here, the code has looped through ALL keys and failed
+    raise fastapi.HTTPException(
+        status_code=429, 
+        detail=f"Overloaded: All {len(VALID_API_KEYS)} API keys have exhausted their limits."
+    )
+
+# --- Endpoints ---
 
 @app.get("/api/health")
-async def health() -> dict[str, str]:
-    return {"status": "ok", "gemini_configured": bool(GEMINI_API_KEY)}
+async def health() -> dict[str, Any]:
+    return {"status": "ok", "gemini_configured": len(VALID_API_KEYS) > 0}
+
+@app.get("/api/ping")
+async def ping():
+    """
+    Lightweight endpoint specifically designed for cron jobs.
+    Returns a tiny payload to keep the server awake without burning resources.
+    """
+    return {"ping": "pong", "status": "awake"}
+
+@app.get("/api/test-keys")
+async def test_keys():
+    """Admin endpoint to check the quota status of all configured keys."""
+    results = {}
+    
+    # Minimal payload to save quota during tests
+    payload = {
+        "contents": [{"parts": [{"text": "Say 'ok'"}]}],
+        "generationConfig": {"maxOutputTokens": 5}
+    }
+    
+    for i, key in enumerate(VALID_API_KEYS):
+        # Safely mask the key so we can print it without exposing your credentials
+        masked_key = f"{key[:5]}...{key[-4:]}" if len(key) > 10 else "InvalidKey"
+        url = f"{GEMINI_API_URL}?key={key}"
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(url, json=payload)
+                
+                # Print exactly what Google replies with in your terminal!
+                print(f"\n--- Testing Key {i+1} ({masked_key}) ---")
+                print(f"Status Code: {response.status_code}")
+                print(f"Response Body: {response.text}")
+                print("-----------------------------------")
+                
+                if response.status_code == 200:
+                    # Double check if Google hid a quota error in the JSON
+                    if "QUOTA" in response.text.upper() or "RATE_LIMIT" in response.text.upper():
+                        results[f"Key_{i+1}"] = "Exhausted 🔴 (Hidden Quota Error)"
+                    else:
+                        results[f"Key_{i+1}"] = "Healthy 🟢"
+                elif response.status_code == 429:
+                    results[f"Key_{i+1}"] = "Exhausted 🔴 (429 Rate Limit)"
+                else:
+                    results[f"Key_{i+1}"] = f"Error {response.status_code} 🟡"
+                    
+        except Exception as e:
+            print(f"Exception on Key {i+1}: {str(e)}")
+            results[f"Key_{i+1}"] = f"Network Error 🔴"
+            
+    return {"key_status": results}
 
 @app.post("/api/analyze-image")
 async def analyze_image(request: ImageAnalysisRequest):
@@ -177,16 +236,9 @@ Respond in JSON format only (no markdown, no code blocks):
 IMPORTANT: Generate 3-5 highly relevant questions that would significantly impact the nutritional analysis:
 
 1. ALWAYS include a portion/weight question with "allow_specify": true so users can input exact weights like "150g", "2 cups", etc.
-   Example: {{"id": "portion", "question": "What's the portion size?", "type": "single_choice", "options": ["Small (100g)", "Medium (200g)", "Large (300g)"], "allow_specify": true, "specify_placeholder": "Enter exact weight (e.g., 175g)"}}
-
 2. Ask about cooking method if it affects nutrition (fried vs baked vs steamed)
-
 3. Ask about specific ingredients if they vary (type of oil, added sugar, cheese type)
-   For variable ingredients, include "allow_specify": true
-   Example: {{"id": "oil", "question": "What type of oil was used?", "type": "single_choice", "options": ["Olive oil", "Vegetable oil", "Butter", "No oil"], "allow_specify": true, "specify_placeholder": "Specify other oil type"}}
-
 4. Ask about additions/toppings that impact nutrition
-
 5. If user has allergies/dietary restrictions, ask about ingredient substitutions
 
 Set "allow_specify": true for questions where exact values matter (weight, specific ingredients)."""
@@ -221,7 +273,6 @@ async def calculate_nutrition(request: FollowUpRequest):
         answers_text = "\n".join([f"- {k}: {v}" for k, v in request.answers.items()])
         health_context = build_health_context(request.health_profile)
         
-        # Build personalized impact section based on health profile
         personalized_prompt = ""
         if request.health_profile:
             conditions = []
