@@ -205,43 +205,42 @@ async def test_keys():
 
 @app.post("/api/analyze-image")
 async def analyze_image(request: ImageAnalysisRequest):
-    """Initial food image analysis to identify food and ingredients"""
+    """Initial food/label analysis to identify product and ingredients"""
     try:
         health_context = build_health_context(request.health_profile)
         
-        prompt = f"""Analyze this food image and provide:
-1. The name of the food/dish
-2. A list of likely ingredients you can identify or reasonably infer
-3. The approximate serving size visible
+        # Updated prompt to handle both prepared food images and nutrition labels
+        prompt = f"""Analyze this image. It is either a photo of prepared food or a Nutrition Facts label from a product.
+
+1. **Identify the Product**: Try to find the specific brand or product name (especially if it's a label). 
+2. **Determine Ingredients**: List likely ingredients (from the 'Ingredients' list on a label or inferred from a food photo).
+3. **Serving Size**: Extract or estimate the serving size.
+
 {health_context}
 
-Respond in JSON format only (no markdown, no code blocks):
+Respond in JSON format only (no markdown):
 {{
-    "food_name": "name of the dish",
+    "food_name": "Specific brand/product name OR dish name",
+    "is_labeled_product": true/false,
     "ingredients": ["ingredient1", "ingredient2", ...],
-    "serving_size": "approximate serving size",
+    "serving_size": "extracted or approximate size",
     "confidence": "high/medium/low",
     "questions": [
         {{
-            "id": "q1",
-            "question": "specific question to improve accuracy",
-            "type": "single_choice" or "specify",
-            "options": ["option1", "option2", "option3"],
-            "allow_specify": true or false,
-            "specify_placeholder": "e.g., 250g" (only if allow_specify is true)
+            "id": "q_identity",
+            "question": "I can see the nutrition facts, but what is the name of this specific food product?",
+            "type": "specify",
+            "allow_specify": true,
+            "specify_placeholder": "e.g. Oikos Greek Yogurt"
         }}
     ]
 }}
 
-IMPORTANT: Generate 3-5 highly relevant questions that would significantly impact the nutritional analysis:
-
-1. ALWAYS include a portion/weight question with "allow_specify": true so users can input exact weights like "150g", "2 cups", etc.
-2. Ask about cooking method if it affects nutrition (fried vs baked vs steamed)
-3. Ask about specific ingredients if they vary (type of oil, added sugar, cheese type)
-4. Ask about additions/toppings that impact nutrition
-5. If user has allergies/dietary restrictions, ask about ingredient substitutions
-
-Set "allow_specify": true for questions where exact values matter (weight, specific ingredients)."""
+**CRITICAL LOGIC**:
+- If the image is a Nutrition Facts label and you **CANNOT** see the product name/brand clearly, you **MUST** include the "q_identity" question in the 'questions' array.
+- If you are highly confident in the product name, you may omit the "q_identity" question.
+- ALWAYS include 2-3 additional questions about weight/portion and preparation as previously required.
+"""
         
         contents = [{
             "parts": [
@@ -261,11 +260,9 @@ Set "allow_specify": true for questions where exact values matter (weight, speci
         
     except fastapi.HTTPException:
         raise
-    except json.JSONDecodeError as e:
-        raise fastapi.HTTPException(status_code=500, detail="Failed to parse AI response")
     except Exception as e:
         raise fastapi.HTTPException(status_code=500, detail=str(e))
-
+    
 @app.post("/api/calculate-nutrition")
 async def calculate_nutrition(request: FollowUpRequest):
     """Calculate detailed nutrition based on food identification and user answers"""

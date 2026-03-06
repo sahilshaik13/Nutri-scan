@@ -32,6 +32,7 @@ interface InitialAnalysis {
   ingredients: string[]
   serving_size: string
   confidence: string
+  is_labeled_product?: boolean
   questions: Question[]
 }
 
@@ -120,7 +121,7 @@ export default function ScanPage() {
     console.log('[v0] MIME type:', type)
 
     try {
-      const response = await fetch('https://nutri-scan-fvyo.onrender.com/api/analyze-image', {
+      const response = await fetch(`${API_BASE_URL}/api/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -158,7 +159,7 @@ export default function ScanPage() {
   const handleQuickAnalysis = async (imageData: string, type: string) => {
     setStep('calculating')
     try {
-      const response = await fetch('https://nutri-scan-fvyo.onrender.com/api/quick-analyze', {
+      const response = await fetch(`${API_BASE_URL}/api/quick-analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -186,7 +187,7 @@ export default function ScanPage() {
     
     setStep('calculating')
     try {
-      const response = await fetch('https://nutri-scan-fvyo.onrender.com/api/calculate-nutrition', {
+      const response = await fetch(`${API_BASE_URL}/api/calculate-nutrition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
