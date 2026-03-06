@@ -15,7 +15,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'NutriScan - AI Food Nutrition Analyzer',
   description: 'Scan your food and get instant nutritional insights powered by AI',
-  generator: 'v0.app',
   icons: {
     icon: [
       {

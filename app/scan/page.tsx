@@ -306,40 +306,41 @@ export default function ScanPage() {
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      {/* Background glow effects */}
-      <div className="pointer-events-none fixed -bottom-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none fixed -right-32 -top-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+      {/* Background glow effects - smaller on mobile */}
+      <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
+      <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
       
-      {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 max-w-2xl items-center gap-4 px-4">
+      {/* Header - improved touch targets */}
+      <header className="sticky top-0 z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl safe-area-inset-top">
+        <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
           <Link 
             href="/dashboard"
-            className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-primary/10"
+            className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 sm:h-10 sm:w-10"
+            aria-label="Go back to dashboard"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </Link>
-          <h1 className="flex-1 text-center text-lg font-bold">Scan Food</h1>
-          <div className="w-10" />
+          <h1 className="flex-1 text-center text-base font-bold sm:text-lg">Scan Food</h1>
+          <div className="w-11 sm:w-10" />
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 p-4">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 py-4 sm:p-6">
         {error && (
-          <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive sm:p-4">
             {error}
           </div>
         )}
 
         {/* Capture Step */}
         {step === 'capture' && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Image Preview */}
-            <div className="overflow-hidden rounded-2xl border border-border/50 bg-card">
+            <div className="overflow-hidden rounded-xl border border-border/50 bg-card sm:rounded-2xl">
               {capturedImage ? (
-                <div className="relative aspect-video">
+                <div className="relative aspect-[4/3] sm:aspect-video">
                   <Image
                     src={`data:${mimeType};base64,${capturedImage}`}
                     alt="Captured food"
@@ -347,38 +348,38 @@ export default function ScanPage() {
                     className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-                  <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-lg bg-background/80 px-3 py-1.5 backdrop-blur-sm">
-                    <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                  <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-background/80 px-2.5 py-1 backdrop-blur-sm sm:bottom-4 sm:left-4 sm:px-3 sm:py-1.5">
+                    <svg className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                     </svg>
-                    <span className="text-xs font-bold uppercase tracking-wider">Ready to Scan</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider sm:text-xs">Ready to Scan</span>
                   </div>
                 </div>
               ) : (
-                <div className="flex aspect-video flex-col items-center justify-center gap-4 bg-card/50">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10">
-                    <svg className="h-10 w-10 text-primary/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <div className="flex aspect-[4/3] flex-col items-center justify-center gap-3 bg-card/50 sm:aspect-video sm:gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 sm:h-20 sm:w-20 sm:rounded-2xl">
+                    <svg className="h-8 w-8 text-primary/60 sm:h-10 sm:w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <circle cx="9" cy="9" r="2" />
                       <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
                     </svg>
                   </div>
-                  <div className="text-center">
-                    <p className="font-semibold">No image captured yet</p>
-                    <p className="text-sm text-muted-foreground">Take a photo or upload an image</p>
+                  <div className="text-center px-4">
+                    <p className="text-sm font-semibold sm:text-base">No image captured yet</p>
+                    <p className="text-xs text-muted-foreground sm:text-sm">Take a photo or upload an image</p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Action Buttons */}
-            <div className="grid gap-4 sm:grid-cols-2">
+            {/* Action Buttons - stacked on mobile, side by side on larger screens */}
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <Button 
                 size="lg" 
                 onClick={() => setShowCamera(true)}
-                className="h-16 rounded-2xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5"
+                className="h-14 rounded-xl bg-primary text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] sm:h-16 sm:rounded-2xl sm:text-lg sm:hover:-translate-y-0.5"
               >
-                <svg className="mr-3 h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="mr-2 h-5 w-5 sm:mr-3 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                   <circle cx="12" cy="13" r="3" />
                 </svg>
@@ -387,11 +388,11 @@ export default function ScanPage() {
               <ImageUpload onUpload={handleImageCapture} />
             </div>
 
-            {/* Recent Scans Link */}
-            <div className="flex justify-center">
+            {/* Recent Scans Link - larger touch target */}
+            <div className="flex justify-center pt-2">
               <Link 
                 href="/dashboard"
-                className="flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+                className="flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground active:bg-card/80 sm:py-2"
               >
                 <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="12" cy="12" r="10" />
@@ -405,25 +406,25 @@ export default function ScanPage() {
 
         {/* Analyzing Step */}
         {step === 'analyzing' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative mb-8">
+          <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
+            <div className="relative mb-6 sm:mb-8">
               <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
-                <svg className="h-12 w-12 animate-pulse text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 sm:h-24 sm:w-24">
+                <svg className="h-10 w-10 animate-pulse text-primary sm:h-12 sm:w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2" />
                 </svg>
               </div>
             </div>
-            <h2 className="mb-2 text-xl font-bold">Analyzing your food...</h2>
-            <p className="text-muted-foreground">Our AI is identifying ingredients</p>
+            <h2 className="mb-2 text-center text-lg font-bold sm:text-xl">Analyzing your food...</h2>
+            <p className="text-center text-sm text-muted-foreground sm:text-base">Our AI is identifying ingredients</p>
           </div>
         )}
 
         {/* Questions Step */}
         {step === 'questions' && initialAnalysis && (
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {capturedImage && (
-              <div className="relative mx-auto w-48 overflow-hidden rounded-xl border-2 border-primary/30 shadow-lg shadow-primary/10">
+              <div className="relative mx-auto w-32 overflow-hidden rounded-lg border-2 border-primary/30 shadow-lg shadow-primary/10 sm:w-48 sm:rounded-xl">
                 <div className="aspect-square">
                   <Image
                     src={`data:${mimeType};base64,${capturedImage}`}
@@ -433,11 +434,11 @@ export default function ScanPage() {
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-                <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-lg bg-background/80 px-2 py-1 backdrop-blur-sm">
-                  <svg className="h-3 w-3 text-primary" viewBox="0 0 24 24" fill="currentColor">
+                <div className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-md bg-background/80 px-1.5 py-0.5 backdrop-blur-sm sm:bottom-2 sm:left-2 sm:rounded-lg sm:px-2 sm:py-1">
+                  <svg className="h-2.5 w-2.5 text-primary sm:h-3 sm:w-3" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   </svg>
-                  <span className="text-[10px] font-bold uppercase">Detected: {initialAnalysis.food_name}</span>
+                  <span className="max-w-[80px] truncate text-[8px] font-bold uppercase sm:max-w-none sm:text-[10px]">Detected: {initialAnalysis.food_name}</span>
                 </div>
               </div>
             )}
@@ -452,17 +453,17 @@ export default function ScanPage() {
 
         {/* Calculating Step */}
         {step === 'calculating' && (
-          <div className="flex flex-col items-center justify-center py-20">
-            <div className="relative mb-8">
+          <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
+            <div className="relative mb-6 sm:mb-8">
               <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
-              <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-primary/10">
-                <svg className="h-12 w-12 animate-spin text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 sm:h-24 sm:w-24">
+                <svg className="h-10 w-10 animate-spin text-primary sm:h-12 sm:w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               </div>
             </div>
-            <h2 className="mb-2 text-xl font-bold">Calculating nutrition...</h2>
-            <p className="text-muted-foreground">Building your nutrition profile</p>
+            <h2 className="mb-2 text-center text-lg font-bold sm:text-xl">Calculating nutrition...</h2>
+            <p className="text-center text-sm text-muted-foreground sm:text-base">Building your nutrition profile</p>
           </div>
         )}
 
@@ -477,38 +478,53 @@ export default function ScanPage() {
         )}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="sticky bottom-0 border-t border-border/10 bg-background px-4 pb-6 pt-2">
+      {/* Bottom Navigation - safe area padding for iOS */}
+      <nav className="sticky bottom-0 border-t border-border/10 bg-background/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-lg sm:px-4 sm:pb-6 sm:pt-2">
         <div className="mx-auto flex max-w-2xl justify-around">
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link 
+            href="/dashboard" 
+            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            aria-label="Go to Home"
+          >
+            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Home</span>
+            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Home</span>
           </Link>
-          <div className="flex flex-col items-center gap-1 text-primary">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0">
+          <div 
+            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-primary sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            aria-current="page"
+          >
+            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0">
               <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
               <path d="m9.5 4 2.5 3h-5l2.5-3Z" fill="currentColor" />
               <path d="m14.5 4 2.5 3h-5l2.5-3Z" fill="currentColor" />
               <circle cx="12" cy="13" r="3" fill="var(--background)" />
             </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Scan</span>
+            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Scan</span>
           </div>
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link 
+            href="/dashboard" 
+            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            aria-label="View History"
+          >
+            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">History</span>
+            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">History</span>
           </Link>
-          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <Link 
+            href="/dashboard" 
+            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            aria-label="View Profile"
+          >
+            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" />
               <path d="M20 21a8 8 0 0 0-16 0" />
             </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Profile</span>
+            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Profile</span>
           </Link>
         </div>
       </nav>
