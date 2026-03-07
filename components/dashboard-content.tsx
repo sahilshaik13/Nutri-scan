@@ -321,10 +321,10 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
           ) : (
             <div className="grid grid-cols-2 gap-4 p-4 sm:grid-cols-3 md:grid-cols-4">
               {scans.map((scan) => (
-                <div
+                <Link
                   key={scan.id}
+                  href={`/insights/${scan.id}`}
                   className="group cursor-pointer"
-                  onClick={() => setSelectedScan(scan)}
                 >
                   <div className="relative aspect-square overflow-hidden rounded-xl border border-border/50 transition-transform group-hover:scale-[1.02]">
                     {scan.image_url ? (
@@ -351,7 +351,7 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
                     <p className="truncate text-sm font-bold">{scan.food_name}</p>
                     <p className="text-xs text-muted-foreground">{formatDate(scan.created_at)}</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

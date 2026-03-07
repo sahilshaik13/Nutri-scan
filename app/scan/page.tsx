@@ -283,15 +283,16 @@ export default function ScanPage() {
 
       console.log('[v0] Insert data:', JSON.stringify(insertData).substring(0, 500))
 
-      const { error: insertError } = await supabase.from('food_scans').insert(insertData)
+      const { error: insertError, data: insertedData } = await supabase.from('food_scans').insert(insertData).select()
 
       if (insertError) {
         console.error('[v0] Insert error:', insertError)
         throw insertError
       }
       
-      console.log('[v0] Save successful, redirecting to dashboard')
-      router.push('/dashboard')
+      console.log('[v0] Save successful, redirecting to insights')
+      const scanId = insertedData?.[0]?.id
+      router.push(scanId ? `/insights/${scanId}` : '/dashboard')
     } catch (err) {
       console.error('[v0] Save error:', err)
       setError(`Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`)
