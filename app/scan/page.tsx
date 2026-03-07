@@ -73,10 +73,8 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 
 export default function ScanPage() {
   const router = useRouter()
-  // Add this line! It uses your cloud URL if available, otherwise defaults to local FastAPI
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
   
-  // ... rest of your state variables ...
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
@@ -87,7 +85,6 @@ export default function ScanPage() {
   const [error, setError] = useState<string | null>(null)
   const [healthProfile, setHealthProfile] = useState<HealthProfile | null>(null)
 
-  // Fetch user's health profile on mount
   useEffect(() => {
     const fetchHealthProfile = async () => {
       const supabase = createClient()
@@ -142,6 +139,16 @@ export default function ScanPage() {
 
       const data: InitialAnalysis = JSON.parse(responseText)
       console.log('[v0] Parsed data:', data)
+      
+      // Force allow_specify for all questions so the UI renders the custom input
+      if (data.questions && data.questions.length > 0) {
+        data.questions = data.questions.map(q => ({
+          ...q,
+          allow_specify: true,
+          specify_placeholder: q.specify_placeholder || "Please specify details..."
+        }))
+      }
+
       setInitialAnalysis(data)
       
       if (data.questions && data.questions.length > 0) {
@@ -185,7 +192,13 @@ export default function ScanPage() {
   const handleQuestionsSubmit = async (answers: Record<string, string>) => {
     if (!initialAnalysis) return
     
+    // We removed the strict validation here because the AnalysisQuestions 
+    // component now handles the flow, ensuring the user only submits when 
+    // they have either answered or explicitly skipped the required questions.
+
+    setError(null)
     setStep('calculating')
+    
     try {
       const response = await fetch(`${API_BASE_URL}/api/calculate-nutrition`, {
         method: 'POST',
@@ -193,7 +206,7 @@ export default function ScanPage() {
         body: JSON.stringify({
           food_name: initialAnalysis.food_name,
           initial_ingredients: initialAnalysis.ingredients,
-          answers,
+          answers, // This now seamlessly passes standard answers, custom values, and "Skipped" strings
           health_profile: healthProfile,
         }),
       })
@@ -229,7 +242,6 @@ export default function ScanPage() {
         return
       }
 
-      // Map health rating to database allowed values
       const healthRatingMap: Record<string, string> = {
         'excellent': 'very_healthy',
         'good': 'healthy',
@@ -307,11 +319,9 @@ export default function ScanPage() {
 
   return (
     <div className="flex min-h-svh flex-col bg-background">
-      {/* Background glow effects - smaller on mobile */}
       <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
       <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
       
-      {/* Header - improved touch targets */}
       <header className="sticky top-0 z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl safe-area-inset-top">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
           <Link 
@@ -335,10 +345,8 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Capture Step */}
         {step === 'capture' && (
           <div className="space-y-4 sm:space-y-6">
-            {/* Image Preview */}
             <div className="overflow-hidden rounded-xl border border-border/50 bg-card sm:rounded-2xl">
               {capturedImage ? (
                 <div className="relative aspect-[4/3] sm:aspect-video">
@@ -373,7 +381,6 @@ export default function ScanPage() {
               )}
             </div>
 
-            {/* Action Buttons - stacked on mobile, side by side on larger screens */}
             <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
               <Button 
                 size="lg" 
@@ -389,7 +396,6 @@ export default function ScanPage() {
               <ImageUpload onUpload={handleImageCapture} />
             </div>
 
-            {/* Recent Scans Link - larger touch target */}
             <div className="flex justify-center pt-2">
               <Link 
                 href="/dashboard"
@@ -405,7 +411,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Analyzing Step */}
         {step === 'analyzing' && (
           <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
             <div className="relative mb-6 sm:mb-8">
@@ -421,7 +426,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Questions Step */}
         {step === 'questions' && initialAnalysis && (
           <div className="space-y-4 sm:space-y-6">
             {capturedImage && (
@@ -452,7 +456,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Calculating Step */}
         {step === 'calculating' && (
           <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
             <div className="relative mb-6 sm:mb-8">
@@ -468,7 +471,6 @@ export default function ScanPage() {
           </div>
         )}
 
-        {/* Results Step */}
         {step === 'results' && nutritionData && (
           <NutritionResults
             data={nutritionData}
@@ -479,7 +481,6 @@ export default function ScanPage() {
         )}
       </main>
 
-      {/* Bottom Navigation - safe area padding for iOS */}
       <nav className="sticky bottom-0 border-t border-border/10 bg-background/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-lg sm:px-4 sm:pb-6 sm:pt-2">
         <div className="mx-auto flex max-w-2xl justify-around">
           <Link 

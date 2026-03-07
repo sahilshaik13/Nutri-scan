@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
-import { ChevronRight, Loader2, PenLine } from 'lucide-react'
+import { ChevronRight, Loader2, PenLine, SkipForward } from 'lucide-react'
 
 interface Question {
   id: string
@@ -66,6 +66,21 @@ export function AnalysisQuestions({
     }
   }
 
+  const handleSkipCurrent = () => {
+    const currentId = questions[currentIndex].id
+    const updatedAnswers = { ...answers, [currentId]: 'Skipped' }
+    
+    setAnswers(updatedAnswers)
+    setSpecifyMode(prev => ({ ...prev, [currentId]: false }))
+
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(prev => prev + 1)
+    } else {
+      // If skipping the final question, submit automatically
+      onSubmit(updatedAnswers)
+    }
+  }
+
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(prev => prev + 1)
@@ -82,10 +97,22 @@ export function AnalysisQuestions({
     onSubmit(answers)
   }
 
+  const handleSkipAll = () => {
+    // Fill any unanswered questions with 'Skipped' and submit
+    const finalAnswers = { ...answers }
+    questions.forEach(q => {
+      if (!finalAnswers[q.id]) {
+        finalAnswers[q.id] = 'Skipped'
+      }
+    })
+    onSubmit(finalAnswers)
+  }
+
   const currentQuestion = questions[currentIndex]
-  const isAnswered = answers[currentQuestion?.id]
+  const isAnswered = answers[currentQuestion?.id] !== undefined
+  const isSkipped = answers[currentQuestion?.id] === 'Skipped'
   const isLastQuestion = currentIndex === questions.length - 1
-  const allAnswered = questions.every(q => answers[q.id])
+  const allAnswered = questions.every(q => answers[q.id] !== undefined)
   const isInSpecifyMode = specifyMode[currentQuestion?.id]
 
   return (
@@ -117,15 +144,34 @@ export function AnalysisQuestions({
         {/* Question Counter */}
         <div className="flex items-center justify-between text-sm text-muted-foreground">
           <span>Question {currentIndex + 1} of {questions.length}</span>
-          {isAnswered && <span className="text-primary">Answered</span>}
+          {isAnswered && !isSkipped && <span className="text-primary font-medium">Answered</span>}
+          {isSkipped && <span className="text-muted-foreground italic">Skipped</span>}
         </div>
 
         {currentQuestion && (
           <div className="space-y-4">
-            <p className="text-lg font-medium">{currentQuestion.question}</p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-lg font-medium">{currentQuestion.question}</p>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleSkipCurrent}
+                className="mt-0.5 h-8 shrink-0 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+                title="Skip this specific question"
+              >
+                Skip
+                <SkipForward className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            {isSkipped && !isInSpecifyMode && (
+              <div className="rounded-lg border border-dashed border-muted-foreground/30 bg-muted/20 p-3 text-sm text-muted-foreground">
+                You skipped this question. Select an option below if you'd like to answer it.
+              </div>
+            )}
             
             <RadioGroup
-              value={isInSpecifyMode ? '' : (answers[currentQuestion.id] || '')}
+              value={isInSpecifyMode || isSkipped ? '' : (answers[currentQuestion.id] || '')}
               onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
               className="space-y-2"
             >
@@ -228,11 +274,11 @@ export function AnalysisQuestions({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleSubmit}
+          onClick={handleSkipAll}
           disabled={isLoading}
           className="w-full text-muted-foreground hover:text-foreground"
         >
-          Skip questions and get quick results
+          Skip remaining questions and get quick results
         </Button>
       </CardContent>
     </Card>

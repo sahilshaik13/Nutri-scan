@@ -209,7 +209,6 @@ async def analyze_image(request: ImageAnalysisRequest):
     try:
         health_context = build_health_context(request.health_profile)
         
-        # Updated prompt to handle both prepared food images and nutrition labels
         prompt = f"""Analyze this image. It is either a photo of prepared food or a Nutrition Facts label from a product.
 
 1. **Identify the Product**: Try to find the specific brand or product name (especially if it's a label). 
@@ -229,17 +228,18 @@ Respond in JSON format only (no markdown):
         {{
             "id": "q_identity",
             "question": "I can see the nutrition facts, but what is the name of this specific food product?",
-            "type": "specify",
+            "type": "multiple_choice",
+            "options": ["Oikos Greek Yogurt", "Chobani Greek Yogurt", "Fage Total", "Store Brand"],
             "allow_specify": true,
-            "specify_placeholder": "e.g. Oikos Greek Yogurt"
+            "specify_placeholder": "Enter exact name..."
         }}
     ]
 }}
 
 **CRITICAL LOGIC**:
-- If the image is a Nutrition Facts label and you **CANNOT** see the product name/brand clearly, you **MUST** include the "q_identity" question in the 'questions' array.
-- If you are highly confident in the product name, you may omit the "q_identity" question.
-- ALWAYS include 2-3 additional questions about weight/portion and preparation as previously required.
+- You MUST provide 2-4 plausible, realistic `options` for EVERY question you generate so the user can quickly select one.
+- If the image is a Nutrition Facts label and you CANNOT see the product name clearly, you MUST include the "q_identity" question.
+- ALWAYS include 2-3 additional questions about weight/portion, preparation method, or specific ingredients.
 """
         
         contents = [{
@@ -262,7 +262,7 @@ Respond in JSON format only (no markdown):
         raise
     except Exception as e:
         raise fastapi.HTTPException(status_code=500, detail=str(e))
-    
+        
 @app.post("/api/calculate-nutrition")
 async def calculate_nutrition(request: FollowUpRequest):
     """Calculate detailed nutrition based on food identification and user answers"""
