@@ -1,5 +1,7 @@
 # NutriScan Deployment Guide
 
+> **Frontend & Backend Connection:** This project uses Vercel's multi-service architecture. The frontend (Next.js) and backend (FastAPI) are configured in `vercel.json` to run as separate services. See [FRONTEND_BACKEND_CONNECTION.md](./FRONTEND_BACKEND_CONNECTION.md) for detailed architecture information.
+
 ## Pre-Deployment Requirements
 
 ### 1. Gemini API Setup

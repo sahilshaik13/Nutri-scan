@@ -73,7 +73,10 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 
 export default function ScanPage() {
   const router = useRouter()
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
+  // In development: http://localhost:3000 (same as frontend)
+  // In production: https://your-domain.com (same as frontend)
+  // API routes are served by the same frontend service
+  const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : ''
   
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
