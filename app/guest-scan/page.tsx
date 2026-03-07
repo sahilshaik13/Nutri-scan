@@ -1,22 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { CameraCapture } from '@/components/camera-capture'
 import { ImageUpload } from '@/components/image-upload'
 import { AnalysisQuestions } from '@/components/analysis-questions'
-import { NutritionResults } from '@/components/nutrition-results'
 import Link from 'next/link'
 import Image from 'next/image'
-
-interface HealthProfile {
-  allergies: string[]
-  intolerances: string[]
-  medical_conditions: string[]
-  dietary_lifestyles: string[]
-}
 
 interface Question {
   id: string
@@ -71,12 +62,9 @@ interface NutritionData {
 
 type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results'
 
-export default function ScanPage() {
+export default function GuestScanPage() {
   const router = useRouter()
-  // In development: http://localhost:3000 (same as frontend)
-  // In production: https://your-domain.com (same as frontend)
-  // API routes are served by the same frontend service
-  const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : ''
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
   
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
@@ -84,30 +72,7 @@ export default function ScanPage() {
   const [mimeType, setMimeType] = useState<string>('image/jpeg')
   const [initialAnalysis, setInitialAnalysis] = useState<InitialAnalysis | null>(null)
   const [nutritionData, setNutritionData] = useState<NutritionData | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [healthProfile, setHealthProfile] = useState<HealthProfile | null>(null)
-
-  useEffect(() => {
-    const fetchHealthProfile = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (user) {
-        const { data } = await supabase
-          .from('health_profiles')
-          .select('allergies, intolerances, medical_conditions, dietary_lifestyles')
-          .eq('user_id', user.id)
-          .single()
-        
-        if (data) {
-          setHealthProfile(data)
-        }
-      }
-    }
-    
-    fetchHealthProfile()
-  }, [])
 
   const handleImageCapture = async (imageData: string, type: string) => {
     setCapturedImage(imageData)
@@ -116,10 +81,6 @@ export default function ScanPage() {
     setError(null)
     setStep('analyzing')
 
-    console.log('[v0] Starting image analysis...')
-    console.log('[v0] Image data length:', imageData.length)
-    console.log('[v0] MIME type:', type)
-
     try {
       const response = await fetch(`${API_BASE_URL}/api/analyze-image`, {
         method: 'POST',
@@ -127,23 +88,19 @@ export default function ScanPage() {
         body: JSON.stringify({ 
           image_base64: imageData, 
           mime_type: type,
-          health_profile: healthProfile 
+          health_profile: null // Guest has no health profile
         }),
       })
 
-      console.log('[v0] Response status:', response.status)
-      
       const responseText = await response.text()
-      console.log('[v0] Response body:', responseText.substring(0, 500))
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status} - ${responseText}`)
       }
 
       const data: InitialAnalysis = JSON.parse(responseText)
-      console.log('[v0] Parsed data:', data)
       
-      // Force allow_specify for all questions so the UI renders the custom input
+      // Force allow_specify for all questions
       if (data.questions && data.questions.length > 0) {
         data.questions = data.questions.map(q => ({
           ...q,
@@ -160,7 +117,6 @@ export default function ScanPage() {
         handleQuickAnalysis(imageData, type)
       }
     } catch (err) {
-      console.error('[v0] Error in handleImageCapture:', err)
       setError(`Failed to analyze the image: ${err instanceof Error ? err.message : 'Unknown error'}`)
       setStep('capture')
     }
@@ -175,7 +131,7 @@ export default function ScanPage() {
         body: JSON.stringify({ 
           image_base64: imageData, 
           mime_type: type,
-          health_profile: healthProfile 
+          health_profile: null // Guest has no health profile
         }),
       })
 
@@ -194,10 +150,6 @@ export default function ScanPage() {
 
   const handleQuestionsSubmit = async (answers: Record<string, string>) => {
     if (!initialAnalysis) return
-    
-    // We removed the strict validation here because the AnalysisQuestions 
-    // component now handles the flow, ensuring the user only submits when 
-    // they have either answered or explicitly skipped the required questions.
 
     setError(null)
     setStep('calculating')
@@ -209,8 +161,8 @@ export default function ScanPage() {
         body: JSON.stringify({
           food_name: initialAnalysis.food_name,
           initial_ingredients: initialAnalysis.ingredients,
-          answers, // This now seamlessly passes standard answers, custom values, and "Skipped" strings
-          health_profile: healthProfile,
+          answers,
+          health_profile: null, // Guest has no health profile
         }),
       })
 
@@ -227,89 +179,16 @@ export default function ScanPage() {
     }
   }
 
-  const handleSave = async () => {
-    if (!nutritionData) return
-    
-    setIsSaving(true)
-    console.log('[v0] Starting save...')
-    
-    try {
-      const supabase = createClient()
-      const { data: { user }, error: userError } = await supabase.auth.getUser()
-      
-      console.log('[v0] User:', user?.id, 'Error:', userError)
-      
-      if (!user) {
-        console.log('[v0] No user, redirecting to login')
-        router.push('/auth/login')
-        return
-      }
-
-      const healthRatingMap: Record<string, string> = {
-        'excellent': 'very_healthy',
-        'good': 'healthy',
-        'moderate': 'moderate',
-        'poor': 'unhealthy',
-        'very poor': 'very_unhealthy',
-      }
-      const dbHealthRating = healthRatingMap[nutritionData.health_rating.toLowerCase()] || 'moderate'
-
-      const insertData = {
-        user_id: user.id,
-        food_name: nutritionData.food_name,
-        image_url: capturedImage ? `data:${mimeType};base64,${capturedImage}` : null,
-        ingredients: nutritionData.ingredients,
-        nutrition_data: {
-          serving_size: nutritionData.serving_size,
-          calories: nutritionData.calories,
-          total_fat: nutritionData.total_fat,
-          saturated_fat: nutritionData.saturated_fat,
-          trans_fat: nutritionData.trans_fat,
-          cholesterol: nutritionData.cholesterol,
-          sodium: nutritionData.sodium,
-          total_carbohydrates: nutritionData.total_carbohydrates,
-          dietary_fiber: nutritionData.dietary_fiber,
-          total_sugars: nutritionData.total_sugars,
-          added_sugars: nutritionData.added_sugars,
-          protein: nutritionData.protein,
-          vitamin_d: nutritionData.vitamin_d,
-          calcium: nutritionData.calcium,
-          iron: nutritionData.iron,
-          potassium: nutritionData.potassium,
-          health_insights: nutritionData.health_insights,
-          recommendations: nutritionData.recommendations,
-          personal_health_impacts: nutritionData.personal_health_impacts,
-        },
-        health_score: nutritionData.health_score,
-        health_rating: dbHealthRating,
-      }
-
-      console.log('[v0] Insert data:', JSON.stringify(insertData).substring(0, 500))
-
-      const { error: insertError, data: insertedData } = await supabase.from('food_scans').insert(insertData).select()
-
-      if (insertError) {
-        console.error('[v0] Insert error:', insertError)
-        throw insertError
-      }
-      
-      console.log('[v0] Save successful, redirecting to insights')
-      const scanId = insertedData?.[0]?.id
-      router.push(scanId ? `/insights/${scanId}` : '/dashboard')
-    } catch (err) {
-      console.error('[v0] Save error:', err)
-      setError(`Failed to save: ${err instanceof Error ? err.message : 'Unknown error'}`)
-    } finally {
-      setIsSaving(false)
-    }
-  }
-
   const handleReset = () => {
     setCapturedImage(null)
     setInitialAnalysis(null)
     setNutritionData(null)
     setError(null)
     setStep('capture')
+  }
+
+  const handleSignUp = () => {
+    router.push('/auth/sign-up?redirect=/dashboard')
   }
 
   if (showCamera) {
@@ -326,18 +205,36 @@ export default function ScanPage() {
       <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
       <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
       
-      <header className="sticky top-0 z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl safe-area-inset-top">
+      {/* Guest Banner */}
+      <div className="sticky top-0 z-40 border-b border-border/10 bg-primary/10 px-3 py-2.5 backdrop-blur-sm sm:px-4 sm:py-3">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-semibold text-primary sm:text-sm">👋 Trying as guest</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignUp}
+            className="h-auto px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/20 sm:text-sm"
+          >
+            Sign up free →
+          </Button>
+        </div>
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-[44px] sm:top-[52px] z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl safe-area-inset-top">
         <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
           <Link 
-            href="/dashboard"
+            href="/"
             className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 sm:h-10 sm:w-10"
-            aria-label="Go back to dashboard"
+            aria-label="Go back home"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </Link>
-          <h1 className="flex-1 text-center text-base font-bold sm:text-lg">Scan Food</h1>
+          <h1 className="flex-1 text-center text-base font-bold sm:text-lg">Guest Scan</h1>
           <div className="w-11 sm:w-10" />
         </div>
       </header>
@@ -401,16 +298,14 @@ export default function ScanPage() {
             </div>
 
             <div className="flex justify-center pt-2">
-              <Link 
-                href="/dashboard"
-                className="flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground active:bg-card/80 sm:py-2"
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSignUp}
+                className="text-xs text-muted-foreground hover:text-primary sm:text-sm"
               >
-                <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
-                View Recent Scans
-              </Link>
+                Sign up to save scans →
+              </Button>
             </div>
           </div>
         )}
@@ -476,19 +371,19 @@ export default function ScanPage() {
         )}
 
         {step === 'results' && nutritionData && (
-          <NutritionResults
+          <GuestNutritionResults
             data={nutritionData}
-            onSave={handleSave}
+            onSignUp={handleSignUp}
             onReset={handleReset}
-            isSaving={isSaving}
           />
         )}
       </main>
 
+      {/* Guest Bottom Navigation */}
       <nav className="sticky bottom-0 border-t border-border/10 bg-background/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-lg sm:px-4 sm:pb-6 sm:pt-2">
         <div className="mx-auto flex max-w-2xl justify-around">
           <Link 
-            href="/dashboard" 
+            href="/" 
             className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
             aria-label="Go to Home"
           >
@@ -510,30 +405,295 @@ export default function ScanPage() {
             </svg>
             <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Scan</span>
           </div>
-          <Link 
-            href="/dashboard" 
+          <button 
+            onClick={handleSignUp}
             className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
-            aria-label="View History"
-          >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">History</span>
-          </Link>
-          <Link 
-            href="/dashboard" 
-            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
-            aria-label="View Profile"
+            aria-label="Sign up for free"
           >
             <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" />
               <path d="M20 21a8 8 0 0 0-16 0" />
             </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Profile</span>
-          </Link>
+            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Sign Up</span>
+          </button>
         </div>
       </nav>
     </div>
+  )
+}
+
+// Guest-specific nutrition results component with sign-up upsell instead of save
+function GuestNutritionResults({
+  data,
+  onSignUp,
+  onReset,
+}: {
+  data: NutritionData
+  onSignUp: () => void
+  onReset: () => void
+}) {
+  const { Badge } = require('@/components/ui/badge')
+  const { Card, CardContent, CardHeader, CardTitle } = require('@/components/ui/card')
+  const { Button: UIButton } = require('@/components/ui/button')
+  const { Progress } = require('@/components/ui/progress')
+  const { Separator } = require('@/components/ui/separator')
+  const {
+    Flame,
+    Droplets,
+    Wheat,
+    Beef,
+    Heart,
+    ShieldCheck,
+    AlertTriangle,
+    ShieldAlert,
+    CircleX,
+  } = require('lucide-react')
+
+  function getHealthColor(score: number): string {
+    if (score >= 80) return 'bg-green-500 text-white'
+    if (score >= 60) return 'bg-blue-500 text-white'
+    if (score >= 40) return 'bg-yellow-500 text-white'
+    return 'bg-red-500 text-white'
+  }
+
+  function getProgressColor(score: number): string {
+    if (score >= 80) return 'bg-green-500'
+    if (score >= 60) return 'bg-blue-500'
+    if (score >= 40) return 'bg-yellow-500'
+    return 'bg-red-500'
+  }
+
+  function getImpactIcon(level: string) {
+    switch (level) {
+      case 'safe':
+        return <ShieldCheck className="h-5 w-5 text-green-500" />
+      case 'caution':
+        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
+      case 'warning':
+        return <ShieldAlert className="h-5 w-5 text-orange-500" />
+      case 'danger':
+        return <CircleX className="h-5 w-5 text-red-500" />
+    }
+  }
+
+  function getImpactBgColor(level: string): string {
+    switch (level) {
+      case 'safe':
+        return 'bg-green-500/10 border-green-500/30'
+      case 'caution':
+        return 'bg-yellow-500/10 border-yellow-500/30'
+      case 'warning':
+        return 'bg-orange-500/10 border-orange-500/30'
+      case 'danger':
+        return 'bg-red-500/10 border-red-500/30'
+      default:
+        return 'bg-muted/50 border-border'
+    }
+  }
+
+  return (
+    <div className="space-y-6 pb-6 sm:pb-8">
+      {/* Upsell Banner */}
+      <div className="rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/10 to-primary/5 p-4 sm:p-6">
+        <div className="flex items-start gap-3">
+          <span className="text-2xl">✨</span>
+          <div className="flex-1">
+            <h2 className="mb-1 font-bold sm:text-lg">Want personalized insights?</h2>
+            <p className="mb-3 text-sm text-muted-foreground">Sign up free to unlock allergy warnings, save meals, and track your nutrition over time.</p>
+            <Button
+              onClick={onSignUp}
+              className="w-full bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30 sm:w-auto"
+            >
+              Sign Up Free
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Food Name & Overall Health Score */}
+      <Card className="border-border/50 bg-card/50">
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <CardTitle className="mb-2 text-2xl sm:text-3xl">{data.food_name}</CardTitle>
+              <p className="text-sm text-muted-foreground">{data.serving_size}</p>
+            </div>
+            <div className={`rounded-2xl px-4 py-2 font-bold text-white ${getHealthColor(data.health_score)}`}>
+              <div className="text-2xl">{Math.round(data.health_score)}</div>
+              <div className="text-xs">{data.health_rating}</div>
+            </div>
+          </div>
+          <Separator className="my-4" />
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Health Score</span>
+              <span className="font-semibold">{Math.round(data.health_score)}%</span>
+            </div>
+            <Progress value={data.health_score} className="h-2" />
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Macros */}
+      <Card className="border-border/50 bg-card/50">
+        <CardHeader>
+          <CardTitle className="text-lg">Nutrition Facts</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="rounded-xl bg-primary/10 p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Flame className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{Math.round(data.calories)}</div>
+              <div className="text-xs text-muted-foreground">Calories</div>
+            </div>
+
+            <div className="rounded-xl bg-primary/10 p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Beef className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{Math.round(data.protein)}g</div>
+              <div className="text-xs text-muted-foreground">Protein</div>
+            </div>
+
+            <div className="rounded-xl bg-primary/10 p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Wheat className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{Math.round(data.total_carbohydrates)}g</div>
+              <div className="text-xs text-muted-foreground">Carbs</div>
+            </div>
+
+            <div className="rounded-xl bg-primary/10 p-4 text-center">
+              <div className="flex justify-center mb-2">
+                <Droplets className="h-6 w-6 text-primary" />
+              </div>
+              <div className="text-2xl font-bold">{Math.round(data.total_fat)}g</div>
+              <div className="text-xs text-muted-foreground">Fat</div>
+            </div>
+          </div>
+
+          <Separator className="my-6" />
+
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Saturated Fat</span>
+              <span className="font-semibold">{Math.round(data.saturated_fat)}g</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Trans Fat</span>
+              <span className="font-semibold">{Math.round(data.trans_fat)}g</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Cholesterol</span>
+              <span className="font-semibold">{Math.round(data.cholesterol)}mg</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Sodium</span>
+              <span className="font-semibold">{Math.round(data.sodium)}mg</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Dietary Fiber</span>
+              <span className="font-semibold">{Math.round(data.dietary_fiber)}g</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Total Sugars</span>
+              <span className="font-semibold">{Math.round(data.total_sugars)}g</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Added Sugars</span>
+              <span className="font-semibold">{Math.round(data.added_sugars)}g</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Potassium</span>
+              <span className="font-semibold">{Math.round(data.potassium)}mg</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Insights */}
+      {data.health_insights && data.health_insights.length > 0 && (
+        <Card className="border-border/50 bg-card/50">
+          <CardHeader>
+            <CardTitle className="text-lg">Health Insights</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {data.health_insights.map((insight, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <Heart className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <span>{insight}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recommendations */}
+      {data.recommendations && data.recommendations.length > 0 && (
+        <Card className="border-border/50 bg-card/50">
+          <CardHeader>
+            <CardTitle className="text-lg">Recommendations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="space-y-2">
+              {data.recommendations.map((rec, idx) => (
+                <li key={idx} className="flex items-start gap-3 text-sm">
+                  <CheckCircle className="h-5 w-5 flex-shrink-0 text-primary mt-0.5" />
+                  <span>{rec}</span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-4">
+        <Button
+          onClick={onSignUp}
+          className="flex-1 h-12 bg-primary text-primary-foreground hover:shadow-lg hover:shadow-primary/30"
+        >
+          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="8" r="4" />
+            <path d="M20 21a8 8 0 0 0-16 0" />
+          </svg>
+          Sign Up Free
+        </Button>
+        <Button
+          onClick={onReset}
+          variant="outline"
+          className="flex-1 h-12"
+        >
+          <svg className="mr-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+            <path d="M21 3v5h-5" />
+            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+            <path d="M3 21v-5h5" />
+          </svg>
+          Scan Again
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+// Re-export the CheckCircle icon that's used in the component
+function CheckCircle(props: any) {
+  return (
+    <svg
+      {...props}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   )
 }

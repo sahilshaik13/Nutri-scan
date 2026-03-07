@@ -178,19 +178,25 @@ export function AnalysisQuestions({
               {currentQuestion.options?.map((option) => (
                 <div 
                   key={option} 
-                  className={`flex items-center space-x-3 rounded-xl border p-4 transition-all ${
+                  className={`flex items-center space-x-3 rounded-xl border-2 p-4 transition-all cursor-pointer ${
                     answers[currentQuestion.id] === option 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border/50 hover:border-primary/30 hover:bg-muted/50'
                   }`}
+                  onClick={() => handleAnswer(currentQuestion.id, option)}
                 >
-                  <RadioGroupItem value={option} id={`${currentQuestion.id}-${option}`} />
+                  <RadioGroupItem value={option} id={`${currentQuestion.id}-${option}`} className="mt-0.5" />
                   <Label 
                     htmlFor={`${currentQuestion.id}-${option}`}
                     className="flex-1 cursor-pointer font-medium"
                   >
                     {option}
                   </Label>
+                  {answers[currentQuestion.id] === option && (
+                    <svg className="h-5 w-5 text-primary" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  )}
                 </div>
               ))}
             </RadioGroup>

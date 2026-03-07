@@ -149,6 +149,13 @@ export function NutritionResults({ data, onSave, onReset, isSaving }: NutritionR
 
   return (
     <div className="space-y-4">
+      {/* Info Banner for Insights */}
+      <div className="rounded-xl border border-primary/30 bg-primary/10 p-4">
+        <p className="text-sm font-medium text-primary">
+          💡 Tip: Save this scan to access detailed insights and personalized recommendations later.
+        </p>
+      </div>
+
       {/* Health Score Card */}
       <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
         <CardContent className="pt-6">
