@@ -85,7 +85,7 @@ export default function GuestScanPage() {
     setStep('analyzing')
 
     try {
-      const response = await fetch(`${API_URL}/analyze-image`, {
+      const response = await fetch(`${API_URL}/api/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -158,7 +158,7 @@ export default function GuestScanPage() {
     setStep('calculating')
     
     try {
-      const response = await fetch(`${API_URL}/calculate-nutrition`, {
+      const response = await fetch(`${API_URL}/api/calculate-nutrition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
