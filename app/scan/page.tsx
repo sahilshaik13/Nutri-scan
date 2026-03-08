@@ -322,7 +322,7 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex min-h-svh flex-col bg-background pb-24">
       <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
       <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
       
