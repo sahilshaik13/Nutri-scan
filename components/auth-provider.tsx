@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { usePreloadRoutes } from '@/hooks/use-preload-routes'
 import type { User } from '@supabase/supabase-js'
 
 interface AuthContextType {
@@ -24,6 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
   const router = useRouter()
   const pathname = usePathname()
+  
+  // Preload routes for faster navigation
+  usePreloadRoutes()
 
   useEffect(() => {
     const supabase = createClient()

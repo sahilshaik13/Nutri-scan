@@ -8,10 +8,12 @@ import './globals.css'
 const manrope = Manrope({ 
   subsets: ["latin"],
   variable: '--font-manrope',
+  display: 'swap',
 });
 const geistMono = Geist_Mono({ 
   subsets: ["latin"],
   variable: '--font-geist-mono',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -34,6 +36,17 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-icon.png',
   },
+  metadataBase: new URL('https://nutri-scan.vercel.app'),
+  openGraph: {
+    title: 'NutriScan - AI Food Nutrition Analyzer',
+    description: 'Scan your food and get instant nutritional insights powered by AI',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NutriScan - AI Food Nutrition Analyzer',
+    description: 'Scan your food and get instant nutritional insights powered by AI',
+  },
 }
 
 export const viewport: Viewport = {
@@ -43,7 +56,8 @@ export const viewport: Viewport = {
   ],
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({
@@ -53,6 +67,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* Preload critical fonts */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* DNS prefetch for Supabase and analytics */}
+        <link rel="dns-prefetch" href="https://xyzsupabaseproject.supabase.co" />
+        <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
+        
+        {/* Preload critical resources */}
+        <link rel="preload" as="image" href="/icon.svg" />
+        
+        {/* Prefetch important pages */}
+        <link rel="prefetch" href="/dashboard" as="document" />
+        <link rel="prefetch" href="/scan" as="document" />
+        
+        {/* Performance optimizations */}
+        <meta httpEquiv="x-ua-compatible" content="ie=edge" />
+      </head>
       <body className={`${manrope.variable} ${geistMono.variable} font-sans antialiased`}>
         <AuthProvider>
           {children}
