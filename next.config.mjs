@@ -13,7 +13,6 @@ const nextConfig = {
   allowedDevOrigins: ['*.vusercontent.net'],
   
   // Performance optimizations
-  swcMinify: true,
   productionBrowserSourceMaps: false,
   
   // Experimental features for better performance
