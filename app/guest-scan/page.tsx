@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CameraCapture } from '@/components/camera-capture'
@@ -193,6 +193,23 @@ export default function GuestScanPage() {
     }
   }
 
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      // Strip the data URL prefix (e.g. "data:image/jpeg;base64,")
+      const base64 = result.split(',')[1]
+      handleImageCapture(base64, file.type || 'image/jpeg')
+    }
+    reader.readAsDataURL(file)
+    // Reset input so the same file can be re-selected
+    e.target.value = ''
+  }
+
   const handleReset = () => {
     setCapturedImage(null)
     setInitialAnalysis(null)
@@ -296,17 +313,41 @@ export default function GuestScanPage() {
               )}
             </div>
 
-            <Button 
-              size="lg" 
-              onClick={() => setShowCamera(true)}
-              className="h-14 rounded-xl bg-primary text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] sm:h-16 sm:rounded-2xl sm:text-lg sm:hover:-translate-y-0.5"
-            >
-              <svg className="mr-2 h-5 w-5 sm:mr-3 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                <circle cx="12" cy="13" r="3" />
-              </svg>
-              Take Photo
-            </Button>
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+              <Button 
+                size="lg" 
+                onClick={() => setShowCamera(true)}
+                className="h-14 rounded-xl bg-primary text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] sm:h-16 sm:rounded-2xl sm:text-lg sm:hover:-translate-y-0.5"
+              >
+                <svg className="mr-2 h-5 w-5 sm:mr-3 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+                Take Photo
+              </Button>
+
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="h-14 rounded-xl text-base font-bold transition-all active:scale-[0.98] sm:h-16 sm:rounded-2xl sm:text-lg sm:hover:-translate-y-0.5"
+              >
+                <svg className="mr-2 h-5 w-5 sm:mr-3 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                Upload Photo
+              </Button>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+            </div>
 
             <div className="flex justify-center pt-2">
               <Button
