@@ -67,7 +67,7 @@ export default function GuestScanPage() {
   const { guestId, saveToGuestSession, isLoading: sessionLoading } = useGuestSession()
   
   // Backend API URL (port 8000)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://nutri-scan-fvyo.onrender.com'
   
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)

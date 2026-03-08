@@ -15,8 +15,8 @@ export function useGuestSession() {
   
   // Get backend API URL from environment or use default for local development
   const getApiUrl = () => {
-    if (typeof window === 'undefined') return 'http://localhost:8000'
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+    if (typeof window === 'undefined') return 'https://nutri-scan-fvyo.onrender.com'
+    return process.env.NEXT_PUBLIC_API_URL || 'https://nutri-scan-fvyo.onrender.com'
   }
 
   // Initialize guest session on mount
