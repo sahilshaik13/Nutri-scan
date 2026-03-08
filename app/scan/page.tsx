@@ -325,24 +325,8 @@ export default function ScanPage() {
     <div className="flex min-h-svh flex-col bg-background pb-24">
       <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
       <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
-      
-      <header className="sticky top-0 z-40 border-b border-border/10 bg-background/80 backdrop-blur-xl safe-area-inset-top">
-        <div className="mx-auto flex h-14 max-w-2xl items-center gap-2 px-3 sm:h-16 sm:gap-4 sm:px-4">
-          <Link 
-            href="/dashboard"
-            className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-primary/10 active:bg-primary/20 sm:h-10 sm:w-10"
-            aria-label="Go back to dashboard"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <h1 className="flex-1 text-center text-base font-bold sm:text-lg">Scan Food</h1>
-          <div className="w-11 sm:w-10" />
-        </div>
-      </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 py-4 sm:p-6">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-3 py-4 sm:p-6 pt-6">
         {error && (
           <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive sm:p-4">
             {error}
