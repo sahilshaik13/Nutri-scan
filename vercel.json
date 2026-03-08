@@ -1,12 +1,8 @@
 {
-    "experimentalServices": {
-        "frontend": {
-            "entrypoint": ".",
-            "routePrefix": "/"
-        },
-        "backend": {
-            "entrypoint": "backend/main.py",
-            "routePrefix": "/api"
+    "framework": "nextjs",
+    "functions": {
+        "app/api/**": {
+            "maxDuration": 60
         }
     }
 }
