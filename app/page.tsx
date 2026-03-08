@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { AppLoading } from '@/components/app-loading'
 
@@ -25,7 +25,7 @@ export default function HomePage() {
       {isLoading && <AppLoading onLoadingComplete={handleLoadingComplete} />}
       
       <div className="min-h-svh overflow-x-hidden">
-        {/* Header */}
+        {/* Header - Always visible */}
         <header className="fixed left-0 right-0 top-0 z-50 border-b border-border/10 bg-background/70 backdrop-blur-xl">
           <nav className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
             <div className="flex items-center gap-10">
@@ -68,7 +68,8 @@ export default function HomePage() {
           </nav>
         </header>
 
-        {/* Hero Section */}
+        {/* Hero Section - Critical for initial paint */}
+        <Suspense fallback={<div className="min-h-[90vh] bg-background" />}>
         <section className="relative flex min-h-[90vh] items-center overflow-hidden pt-20">
           <div className="absolute inset-0 z-0">
             <div 
@@ -140,8 +141,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </Suspense>
 
-        {/* How it Works Section */}
+        {/* How it Works Section - Lazy loaded */}
+        <Suspense fallback={<div className="min-h-96 bg-card/30" />}>
         <section id="how-it-works" className="border-y border-border/10 bg-card/30 px-6 py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mb-16 flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -210,8 +213,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </Suspense>
 
-        {/* Features Section */}
+        {/* Features Section - Lazy loaded */}
+        <Suspense fallback={<div className="min-h-80 bg-background" />}>
         <section id="features" className="px-6 py-24">
           <div className="mx-auto max-w-7xl">
             <div className="mb-16 text-center">
@@ -265,8 +270,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </Suspense>
 
-        {/* CTA Section */}
+        {/* CTA Section - Lazy loaded */}
+        <Suspense fallback={<div className="min-h-80 bg-background" />}>
         <section className="px-6 py-24">
           <div className="relative mx-auto max-w-4xl overflow-hidden rounded-3xl border border-primary/30 bg-gradient-to-br from-primary/20 to-card p-8 text-center md:p-16">
             <div className="absolute -right-16 -top-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
@@ -291,8 +298,10 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+        </Suspense>
 
-        {/* Footer */}
+        {/* Footer - Lazy loaded */}
+        <Suspense fallback={<div className="min-h-24 border-t border-border/20" />}>
         <footer className="border-t border-border/20 px-6 py-12">
           <div className="mx-auto max-w-7xl">
             <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
@@ -322,6 +331,7 @@ export default function HomePage() {
             </div>
           </div>
         </footer>
+        </Suspense>
       </div>
     </>
   )
