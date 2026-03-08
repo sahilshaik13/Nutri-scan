@@ -2,31 +2,36 @@
 
 ## Overview
 
-This document covers the setup, configuration, and deployment of the NutriScan application, which uses a unified Next.js architecture with all services running on port 3000.
+This document covers the setup, configuration, and deployment of the NutriScan application with separated frontend and backend services.
 
 ## Architecture
 
-NutriScan uses a unified single-service architecture:
+NutriScan uses a multi-service architecture:
 
-- **Frontend + Backend**: Next.js 16+ running on port 3000
-  - Frontend: React UI pages and components
-  - Backend: Next.js API routes (`/app/api/*`)
-  - API routes handle all backend logic using Next.js route handlers
+- **Frontend**: Next.js 16+ running on **port 3000**
+  - React UI for food scanning and nutrition tracking
+  - Communicates with backend via HTTP requests
+  
+- **Backend**: FastAPI (Python) running on **port 8000**
+  - Handles food image analysis with Google Gemini Vision API
+  - Manages guest sessions and nutrition calculations
+  - Provides REST API endpoints for all food analysis operations
+
 - **Database**: Supabase PostgreSQL for data persistence
-- **AI Service**: Google Gemini API for food analysis
+- **AI Service**: Google Gemini API for food image analysis
 
-**Why Unified Architecture?**
-- Single deployment on Vercel
-- No cross-origin requests needed
-- Simpler development (one `npm run dev` command)
-- Built-in API proxying via Next.js
-- Better performance with no network round-trip to separate backend
+**Why Separate Services?**
+- Frontend and backend can be developed independently
+- Backend can be scaled separately from frontend
+- Easy to deploy to different servers/services (Vercel for frontend, any server for backend)
+- Clear separation of concerns
 
 ## Development Setup
 
 ### Prerequisites
 
-- Node.js 18+ (for Next.js)
+- Node.js 18+ (for Next.js frontend)
+- Python 3.9+ (for FastAPI backend)
 - Supabase account and project
 - Google Gemini API keys (1-4 for failover)
 
@@ -39,6 +44,9 @@ Create a `.env.local` file in the project root:
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
+# Backend API URL (development)
+NEXT_PUBLIC_API_URL=http://localhost:8000
+
 # Gemini API Configuration (multiple keys for failover)
 GOOGLE_GEMINI_API_KEY=your_gemini_api_key_primary
 GEMINI_API_KEY_1=your_gemini_api_key_1
@@ -47,9 +55,9 @@ GEMINI_API_KEY_3=your_gemini_api_key_3
 GEMINI_API_KEY_4=your_gemini_api_key_4
 ```
 
-### 2. Frontend Setup (Next.js)
+### 2. Frontend Setup (Next.js on port 3000)
 
-#### Install Dependencies
+#### Install Frontend Dependencies
 
 ```bash
 npm install
@@ -57,7 +65,7 @@ npm install
 pnpm install
 ```
 
-#### Run Development Server
+#### Run Frontend Development Server
 
 ```bash
 npm run dev
@@ -65,17 +73,34 @@ npm run dev
 pnpm dev
 ```
 
-The application will be available at `http://localhost:3000`
+Frontend will be available at `http://localhost:3000`
 
-**Available API Endpoints:**
-- `POST /api/analyze-image` - Initial food image analysis with Gemini
-- `POST /api/quick-analyze` - Quick nutrition analysis from image
-- `POST /api/calculate-nutrition` - Refined nutrition based on user answers
-- `POST /api/guest/session` - Create a new guest session (UUID-based)
-- `GET /api/guest/session?id={guest_id}` - Retrieve guest session data
-- `POST /api/guest/session/scan` - Save scan to guest session
+### 3. Backend Setup (FastAPI on port 8000)
 
-All API routes are located in `/app/api/*` and use Next.js route handlers with the Gemini API.
+#### Install Backend Dependencies
+
+```bash
+cd backend
+pip install fastapi uvicorn httpx python-dotenv
+```
+
+#### Run Backend Server
+
+```bash
+cd backend
+python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+Backend will be available at `http://localhost:8000`
+
+**Available Backend API Endpoints:**
+- `POST /analyze-image` - Initial food image analysis with Gemini Vision
+- `POST /quick-analyze` - Quick nutrition analysis from image  
+- `POST /calculate-nutrition` - Refined nutrition based on user answers
+- `POST /guest/session` - Create a new guest session (UUID-based)
+- `GET /guest/session/{guest_id}` - Retrieve guest session data
+- `POST /guest/session/{guest_id}/scan` - Save scan to guest session
+- `GET /health` - Health check endpoint
 
 ### 4. Database Setup (Supabase)
 

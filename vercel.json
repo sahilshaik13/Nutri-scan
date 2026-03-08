@@ -1,6 +1,12 @@
 {
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs"
+  "experimentalServices": {
+    "frontend": {
+      "entrypoint": ".",
+      "routePrefix": "/"
+    },
+    "backend": {
+      "entrypoint": "backend/main.py",
+      "routePrefix": "/api"
+    }
+  }
 }

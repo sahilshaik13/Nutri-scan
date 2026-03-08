@@ -66,6 +66,9 @@ export default function GuestScanPage() {
   const router = useRouter()
   const { guestId, saveToGuestSession, isLoading: sessionLoading } = useGuestSession()
   
+  // Backend API URL (port 8000)
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
   const [capturedImage, setCapturedImage] = useState<string | null>(null)
@@ -82,7 +85,7 @@ export default function GuestScanPage() {
     setStep('analyzing')
 
     try {
-      const response = await fetch(`/api/analyze-image`, {
+      const response = await fetch(`${API_URL}/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -155,7 +158,7 @@ export default function GuestScanPage() {
     setStep('calculating')
     
     try {
-      const response = await fetch(`/api/calculate-nutrition`, {
+      const response = await fetch(`${API_URL}/calculate-nutrition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
