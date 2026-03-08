@@ -69,7 +69,10 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect logged in users away from auth pages (but not from onboarding)
-  if (request.nextUrl.pathname.startsWith('/auth/') && user) {
+  // Exception: /auth/reset-password must be accessible even when logged in,
+  // because Supabase establishes a session before the user can set their new password.
+  const isResetPage = request.nextUrl.pathname.startsWith('/auth/reset-password')
+  if (request.nextUrl.pathname.startsWith('/auth/') && user && !isResetPage) {
     // Check if user has completed onboarding
     const { data: profile } = await supabase
       .from('health_profiles')
