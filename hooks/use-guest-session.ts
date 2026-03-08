@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { getApiUrl } from '@/lib/api-client'
 
 interface GuestScan {
   food_name: string
@@ -12,12 +13,6 @@ export function useGuestSession() {
   const [guestId, setGuestId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [scans, setScans] = useState<GuestScan[]>([])
-  
-  // Get backend API URL from environment or use default for local development
-  const getApiUrl = () => {
-    if (typeof window === 'undefined') return 'http://localhost:8000'
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-  }
 
   // Initialize guest session on mount
   useEffect(() => {
@@ -30,9 +25,8 @@ export function useGuestSession() {
           setGuestId(storedGuestId)
           console.log('[v0] Using existing guest session:', storedGuestId)
         } else {
-          // Create new guest session on FastAPI backend (port 8000)
-          const apiUrl = getApiUrl()
-          const response = await fetch(`${apiUrl}/guest/session`, {
+          // Create new guest session on FastAPI backend
+          const response = await fetch(`${getApiUrl()}/guest/session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           })
@@ -63,8 +57,7 @@ export function useGuestSession() {
     if (!guestId) return
 
     try {
-      const apiUrl = getApiUrl()
-      const response = await fetch(`${apiUrl}/guest/session/${guestId}`, {
+      const response = await fetch(`${getApiUrl()}/guest/session/${guestId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -87,8 +80,7 @@ export function useGuestSession() {
     }
 
     try {
-      const apiUrl = getApiUrl()
-      const response = await fetch(`${apiUrl}/guest/session/${guestId}/scan`, {
+      const response = await fetch(`${getApiUrl()}/guest/session/${guestId}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scan),

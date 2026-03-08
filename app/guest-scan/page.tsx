@@ -8,6 +8,7 @@ import { AnalysisQuestions } from '@/components/analysis-questions'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useGuestSession } from '@/hooks/use-guest-session'
+import { getApiUrl } from '@/lib/api-client'
 
 interface Question {
   id: string
@@ -65,9 +66,7 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 export default function GuestScanPage() {
   const router = useRouter()
   const { guestId, saveToGuestSession, isLoading: sessionLoading } = useGuestSession()
-  
-  // Backend API URL (port 8000)
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+  const API_URL = getApiUrl()
   
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
