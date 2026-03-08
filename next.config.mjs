@@ -8,8 +8,6 @@ const nextConfig = {
   },
   // Allow cross-origin requests in development
   allowedDevOrigins: ['*.vusercontent.net'],
-  // Enable React Compiler for faster rendering
-  reactCompiler: true,
 }
 
 export default nextConfig
