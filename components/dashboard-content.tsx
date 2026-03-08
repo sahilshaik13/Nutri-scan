@@ -374,13 +374,13 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
             </svg>
             <span className="text-[10px] font-medium uppercase tracking-wider">Scan</span>
           </Link>
-          <div className="flex flex-col items-center gap-1 text-muted-foreground/60">
+          <Link href="/insights" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">History</span>
-          </div>
+            <span className="text-[10px] font-medium uppercase tracking-wider">Insights</span>
+          </Link>
           <Link href="/profile" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" />

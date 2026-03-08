@@ -481,52 +481,49 @@ export default function ScanPage() {
         )}
       </main>
 
-      <nav className="sticky bottom-0 border-t border-border/10 bg-background/95 px-2 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-1.5 backdrop-blur-lg sm:px-4 sm:pb-6 sm:pt-2">
+      <nav className="sticky bottom-0 border-t border-border/10 bg-background/95 backdrop-blur-lg px-4 pb-6 pt-2">
         <div className="mx-auto flex max-w-2xl justify-around">
           <Link 
             href="/dashboard" 
-            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground"
             aria-label="Go to Home"
           >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
             </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Home</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider">Home</span>
           </Link>
           <div 
-            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-primary sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            className="flex flex-col items-center gap-1 text-primary"
             aria-current="page"
           >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="0">
-              <path d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9Z" />
-              <path d="m9.5 4 2.5 3h-5l2.5-3Z" fill="currentColor" />
-              <path d="m14.5 4 2.5 3h-5l2.5-3Z" fill="currentColor" />
-              <circle cx="12" cy="13" r="3" fill="var(--background)" />
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
             </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Scan</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider">Scan</span>
           </div>
           <Link 
-            href="/dashboard" 
-            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
-            aria-label="View History"
+            href="/insights"
+            className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground"
+            aria-label="View Insights"
           >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="10" />
               <polyline points="12 6 12 12 16 14" />
             </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">History</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider">Insights</span>
           </Link>
           <Link 
-            href="/dashboard" 
-            className="flex min-w-[56px] flex-col items-center gap-0.5 rounded-lg px-2 py-1.5 text-muted-foreground/60 transition-colors hover:text-foreground active:bg-primary/10 sm:min-w-[64px] sm:gap-1 sm:px-3 sm:py-2"
+            href="/profile"
+            className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground"
             aria-label="View Profile"
           >
-            <svg className="h-5 w-5 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="8" r="4" />
               <path d="M20 21a8 8 0 0 0-16 0" />
             </svg>
-            <span className="text-[9px] font-medium uppercase tracking-wider sm:text-[10px]">Profile</span>
+            <span className="text-[10px] font-medium uppercase tracking-wider">Profile</span>
           </Link>
         </div>
       </nav>
