@@ -6,12 +6,18 @@ import os
 import json
 import re
 import asyncio
-from typing import Any
+import uuid
+from typing import Any, Optional
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+import logging
 
 # Load the variables from the .env file
-load_dotenv() 
+load_dotenv()
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__) 
 
 app = fastapi.FastAPI()
 
@@ -49,6 +55,10 @@ class QuickAnalyzeRequest(BaseModel):
     image_base64: str
     mime_type: str = "image/jpeg"
     health_profile: dict | None = None
+    guest_id: Optional[str] = None  # For guest user tracking
+
+# In-memory guest session store (replace with database in production)
+GUEST_SESSIONS = {}
 
 # --- Helper Functions ---
 
@@ -151,6 +161,36 @@ async def call_gemini_api(contents: list, max_retries: int = 2) -> str:
 @app.get("/api/health")
 async def health() -> dict[str, Any]:
     return {"status": "ok", "gemini_configured": len(VALID_API_KEYS) > 0}
+
+@app.post("/guest/session")
+async def create_guest_session():
+    """Create a new guest session for unauthenticated users"""
+    guest_id = str(uuid.uuid4())
+    GUEST_SESSIONS[guest_id] = {
+        "id": guest_id,
+        "scans": [],
+        "created_at": asyncio.get_event_loop().time(),
+    }
+    logger.info(f"[v0] Created guest session: {guest_id}")
+    return {"guest_id": guest_id}
+
+@app.get("/guest/session/{guest_id}")
+async def get_guest_session(guest_id: str):
+    """Retrieve guest session data"""
+    if guest_id not in GUEST_SESSIONS:
+        raise fastapi.HTTPException(status_code=404, detail="Guest session not found")
+    logger.info(f"[v0] Retrieved guest session: {guest_id}")
+    return GUEST_SESSIONS[guest_id]
+
+@app.post("/guest/session/{guest_id}/scan")
+async def save_guest_scan(guest_id: str, scan_data: dict):
+    """Save a scan to guest session"""
+    if guest_id not in GUEST_SESSIONS:
+        raise fastapi.HTTPException(status_code=404, detail="Guest session not found")
+    
+    GUEST_SESSIONS[guest_id]["scans"].append(scan_data)
+    logger.info(f"[v0] Saved scan for guest: {guest_id}")
+    return {"success": True, "scan_count": len(GUEST_SESSIONS[guest_id]["scans"])}
 
 @app.get("/api/ping")
 async def ping():
