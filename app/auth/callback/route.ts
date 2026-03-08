@@ -4,32 +4,40 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const type = searchParams.get('type')
+  const next = searchParams.get('next') ?? ''
+
+  // Detect password recovery callbacks — redirect to reset page, not dashboard
+  const isRecovery = type === 'recovery' || next.includes('reset-password')
 
   if (code) {
     const supabase = await createClient()
     const { error, data } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error && data.user) {
-      // Check if user has completed onboarding
+      const forwardedHost = request.headers.get('x-forwarded-host')
+      const isLocalEnv = process.env.NODE_ENV === 'development'
+
+      const getRedirect = (path: string) => {
+        if (isLocalEnv) return `${origin}${path}`
+        if (forwardedHost) return `https://${forwardedHost}${path}`
+        return `${origin}${path}`
+      }
+
+      // For password reset: send user to the reset page (session is already established)
+      if (isRecovery) {
+        return NextResponse.redirect(getRedirect('/auth/reset-password'))
+      }
+
+      // For normal email verification: check onboarding state
       const { data: profile } = await supabase
         .from('health_profiles')
         .select('onboarding_completed')
         .eq('user_id', data.user.id)
         .single()
 
-      const forwardedHost = request.headers.get('x-forwarded-host')
-      const isLocalEnv = process.env.NODE_ENV === 'development'
-      
-      // Redirect to onboarding if not completed, otherwise to dashboard
       const redirectPath = profile?.onboarding_completed ? '/dashboard' : '/onboarding'
-      
-      if (isLocalEnv) {
-        return NextResponse.redirect(`${origin}${redirectPath}`)
-      } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${redirectPath}`)
-      } else {
-        return NextResponse.redirect(`${origin}${redirectPath}`)
-      }
+      return NextResponse.redirect(getRedirect(redirectPath))
     }
   }
 
