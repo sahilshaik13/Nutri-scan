@@ -12,14 +12,6 @@ export function useGuestSession() {
   const [guestId, setGuestId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [scans, setScans] = useState<GuestScan[]>([])
-  
-  // Determine API base URL - use /api for same-origin requests
-  const getApiUrl = () => {
-    if (typeof window === 'undefined') return '/api'
-    // In development with separate backend: http://localhost:10000
-    // In production or sandbox: /api
-    return process.env.NEXT_PUBLIC_API_URL || '/api'
-  }
 
   // Initialize guest session on mount
   useEffect(() => {
@@ -32,9 +24,8 @@ export function useGuestSession() {
           setGuestId(storedGuestId)
           console.log('[v0] Using existing guest session:', storedGuestId)
         } else {
-          // Create new guest session
-          const apiUrl = getApiUrl()
-          const response = await fetch(`${apiUrl}/guest/session`, {
+          // Create new guest session - Vercel routes /api/* to backend on port 10000
+          const response = await fetch('/api/guest/session', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           })
@@ -65,8 +56,7 @@ export function useGuestSession() {
     if (!guestId) return
 
     try {
-      const apiUrl = getApiUrl()
-      const response = await fetch(`${apiUrl}/guest/session/${guestId}`, {
+      const response = await fetch(`/api/guest/session/${guestId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -89,8 +79,7 @@ export function useGuestSession() {
     }
 
     try {
-      const apiUrl = getApiUrl()
-      const response = await fetch(`${apiUrl}/guest/session/${guestId}/scan`, {
+      const response = await fetch(`/api/guest/session/${guestId}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scan),
