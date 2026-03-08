@@ -1,19 +1,6 @@
 {
-  "experimentalServices": {
-    "frontend": {
-      "entrypoint": ".",
-      "routePrefix": "/"
-    },
-    "backend": {
-      "entrypoint": "backend/main.py",
-      "routePrefix": "/api"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/(analyze-image|quick-analyze|calculate-nutrition)(?:$|/)",
-      "dest": "/",
-      "methods": ["GET", "POST", "PUT", "DELETE"]
-    }
-  ]
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs"
 }

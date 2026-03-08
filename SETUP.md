@@ -2,29 +2,37 @@
 
 ## Overview
 
-This document covers the setup, configuration, and deployment of the NutriScan application, including frontend-backend port connections, database seeding, and guest user support.
+This document covers the setup, configuration, and deployment of the NutriScan application, which uses a unified Next.js architecture with all services running on port 3000.
 
 ## Architecture
 
-NutriScan uses a multi-service architecture:
+NutriScan uses a unified single-service architecture:
 
-- **Frontend**: Next.js 16+ running on port 3000 (development) or Vercel (production)
-- **Backend**: Python FastAPI running on port 10000 (development) or via Vercel's experimentalServices (production)
+- **Frontend + Backend**: Next.js 16+ running on port 3000
+  - Frontend: React UI pages and components
+  - Backend: Next.js API routes (`/app/api/*`)
+  - API routes handle all backend logic using Next.js route handlers
 - **Database**: Supabase PostgreSQL for data persistence
 - **AI Service**: Google Gemini API for food analysis
+
+**Why Unified Architecture?**
+- Single deployment on Vercel
+- No cross-origin requests needed
+- Simpler development (one `npm run dev` command)
+- Built-in API proxying via Next.js
+- Better performance with no network round-trip to separate backend
 
 ## Development Setup
 
 ### Prerequisites
 
-- Node.js 18+ (for frontend)
-- Python 3.9+ (for backend)
+- Node.js 18+ (for Next.js)
 - Supabase account and project
-- Google Gemini API keys
+- Google Gemini API keys (1-4 for failover)
 
 ### 1. Environment Configuration
 
-Create a `.env.local` file in the project root with:
+Create a `.env.local` file in the project root:
 
 ```env
 # Supabase Configuration
@@ -32,45 +40,14 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Gemini API Configuration (multiple keys for failover)
+GOOGLE_GEMINI_API_KEY=your_gemini_api_key_primary
 GEMINI_API_KEY_1=your_gemini_api_key_1
 GEMINI_API_KEY_2=your_gemini_api_key_2
 GEMINI_API_KEY_3=your_gemini_api_key_3
 GEMINI_API_KEY_4=your_gemini_api_key_4
-
-# Frontend & Backend Connection
-NEXT_PUBLIC_API_URL=http://localhost:10000
 ```
 
-### 2. Backend Setup (FastAPI)
-
-#### Install Dependencies
-
-```bash
-cd backend
-pip install fastapi uvicorn httpx python-dotenv
-```
-
-#### Run Backend Server
-
-```bash
-cd backend
-python -m uvicorn main:app --host 0.0.0.0 --port 10000 --reload
-```
-
-The backend will be available at `http://localhost:10000`
-
-**Available endpoints:**
-- `GET /api/health` - Health check and Gemini configuration status
-- `GET /api/ping` - Lightweight ping for cron jobs
-- `GET /api/test-keys` - Test all configured Gemini API keys
-- `POST /api/analyze-image` - Initial food image analysis
-- `POST /api/calculate-nutrition` - Calculate nutrition based on analysis
-- `POST /api/quick-analyze` - Combined analysis and nutrition calculation
-- `POST /api/guest/session` - Create a new guest session
-- `GET /api/guest/session/{guest_id}` - Retrieve guest session data
-- `POST /api/guest/session/{guest_id}/scan` - Save scan to guest session
-
-### 3. Frontend Setup (Next.js)
+### 2. Frontend Setup (Next.js)
 
 #### Install Dependencies
 
@@ -80,7 +57,7 @@ npm install
 pnpm install
 ```
 
-#### Run Frontend Server
+#### Run Development Server
 
 ```bash
 npm run dev
@@ -88,12 +65,17 @@ npm run dev
 pnpm dev
 ```
 
-The frontend will be available at `http://localhost:3000`
+The application will be available at `http://localhost:3000`
 
-**Port Connection:**
-- Frontend makes requests to `http://localhost:10000` (the backend)
-- The `NEXT_PUBLIC_API_URL` environment variable controls this connection
-- Ensure the backend is running before starting the frontend
+**Available API Endpoints:**
+- `POST /api/analyze-image` - Initial food image analysis with Gemini
+- `POST /api/quick-analyze` - Quick nutrition analysis from image
+- `POST /api/calculate-nutrition` - Refined nutrition based on user answers
+- `POST /api/guest/session` - Create a new guest session (UUID-based)
+- `GET /api/guest/session?id={guest_id}` - Retrieve guest session data
+- `POST /api/guest/session/scan` - Save scan to guest session
+
+All API routes are located in `/app/api/*` and use Next.js route handlers with the Gemini API.
 
 ### 4. Database Setup (Supabase)
 

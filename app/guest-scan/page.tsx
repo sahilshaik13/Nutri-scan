@@ -125,7 +125,7 @@ export default function GuestScanPage() {
   const handleQuickAnalysis = async (imageData: string, type: string) => {
     setStep('calculating')
     try {
-      const response = await fetch(`${API_BASE_URL}/api/quick-analyze`, {
+      const response = await fetch(`/api/quick-analyze`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
