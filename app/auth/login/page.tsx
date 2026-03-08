@@ -12,14 +12,21 @@ import { useState, Suspense } from 'react'
 function VerificationMessage() {
   const searchParams = useSearchParams()
   const isVerified = searchParams.get('verified') === 'true'
+  const isReset = searchParams.get('reset') === 'true'
 
-  if (!isVerified) return null
-
-  return (
+  if (isVerified) return (
     <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm font-medium text-green-500">
       ✅ Your email has been successfully verified! Please log in below.
     </div>
   )
+
+  if (isReset) return (
+    <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm font-medium text-green-500">
+      ✅ Password updated successfully! Please sign in with your new password.
+    </div>
+  )
+
+  return null
 }
 
 export default function LoginPage() {
@@ -137,9 +144,9 @@ export default function LoginPage() {
               <Label htmlFor="password" className="text-sm font-semibold">
                 Password
               </Label>
-              <a href="#" className="text-sm font-bold text-primary hover:underline">
+              <Link href="/auth/forgot-password" className="text-sm font-bold text-primary hover:underline">
                 Forgot?
-              </a>
+              </Link>
             </div>
             <div className="relative flex w-full">
               <Input
