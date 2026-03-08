@@ -51,25 +51,31 @@ function InsightsContent() {
   const getWeeklyData = () => {
     const weekData: { [key: string]: number } = {}
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+    const datesMap = new Map<string, number>() // Map date string to index for O(1) lookup
     
-    // Initialize last 7 days
+    // Initialize last 7 days with their date strings
+    const lastSevenDates: string[] = []
     for (let i = 6; i >= 0; i--) {
       const date = new Date()
       date.setDate(date.getDate() - i)
+      const dateStr = date.toDateString()
+      lastSevenDates.push(dateStr)
+      datesMap.set(dateStr, i)
       const dayName = dayNames[date.getDay()]
       weekData[dayName] = 0
     }
 
-    // Sum calories by day
+    // Sum calories by day - single pass through scans
     scans.forEach(scan => {
       const scanDate = new Date(scan.created_at)
-      const dayName = dayNames[scanDate.getDay()]
-      const dayKey = Object.keys(weekData).find(key => {
-        const date = new Date()
-        date.setDate(date.getDate() - (6 - Object.keys(weekData).indexOf(key)))
-        return date.getDay() === scanDate.getDay() && date.toDateString() === scanDate.toDateString()
-      })
-      if (dayKey) weekData[dayKey] += scan.nutrition_data?.calories || 0
+      const dateStr = scanDate.toDateString()
+      
+      // Check if this scan is within the last 7 days
+      if (datesMap.has(dateStr)) {
+        const dayIndex = datesMap.get(dateStr)!
+        const dayName = dayNames[scanDate.getDay()]
+        weekData[dayName] += scan.nutrition_data?.calories || 0
+      }
     })
 
     return Object.entries(weekData).map(([day, calories]) => ({
