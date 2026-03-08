@@ -9,8 +9,8 @@ import { ScanDetailsDialog, type FoodScan } from '@/components/scan-details-dial
 
 const neu = {
   raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
-  sm:     '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
-  inset:  'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff',
+  sm: '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
+  inset: 'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff',
 }
 
 function getHealthColor(score: number) {
@@ -31,18 +31,18 @@ export default function InsightsPage() {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
-        
+
         // Fetch last 30 days of scans for insights
         const thirtyDaysAgo = new Date()
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-        
+
         const { data } = await supabase
           .from('food_scans')
           .select('*')
           .eq('user_id', user.id)
           .gte('created_at', thirtyDaysAgo.toISOString())
           .order('created_at', { ascending: false })
-          
+
         setScans(data || [])
       } catch (err) {
         console.error('Error fetching insights data:', err)
@@ -64,7 +64,7 @@ export default function InsightsPage() {
   // Basic Derived Stats
   const totalScans = scans.length
   const avgCalories = totalScans > 0 ? Math.round(scans.reduce((s, x) => s + (x.nutrition_data?.calories || 0), 0) / totalScans) : 0
-  const avgProtein  = totalScans > 0 ? Math.round(scans.reduce((s, x) => s + (x.nutrition_data?.protein  || 0), 0) / totalScans) : 0
+  const avgProtein = totalScans > 0 ? Math.round(scans.reduce((s, x) => s + (x.nutrition_data?.protein || 0), 0) / totalScans) : 0
   const avgHealthScore = totalScans > 0 ? Math.round(scans.reduce((s, x) => s + x.health_score, 0) / totalScans) : 0
 
   // Weekly Trend
@@ -115,7 +115,7 @@ export default function InsightsPage() {
             animation: shimmer 1.5s infinite ease-in-out;
           }
         `}</style>
-        
+
         {/* Header Skeleton */}
         <header className="sticky top-0 z-30 px-4 pt-3 pb-2" style={{ background: '#eaf0eb' }}>
           <div className="mx-auto flex h-14 max-w-2xl items-center justify-between rounded-2xl px-3" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
@@ -188,7 +188,7 @@ export default function InsightsPage() {
       </header>
 
       <main className="mx-auto w-full max-w-lg flex-1 px-4 pt-6 space-y-6">
-        
+
         {/* At a Glance Row */}
         <div className="grid grid-cols-2 gap-4">
           <div className="anim-slide-up rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised, animationDelay: '0.1s' }}>
@@ -198,7 +198,7 @@ export default function InsightsPage() {
             <p className="text-[10px] font-black uppercase tracking-widest text-[#6b7e6d]">Avg Calories</p>
             <p className="mt-1 text-2xl font-black text-[#1a231b]">{avgCalories}</p>
           </div>
-          
+
           <div className="anim-slide-up rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised, animationDelay: '0.2s' }}>
             <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
               <Activity className="h-4 w-4" style={{ color: getHealthColor(avgHealthScore) }} />
@@ -212,6 +212,7 @@ export default function InsightsPage() {
         </div>
 
         {/* Weekly Trend Chart */}
+        {/* Weekly Trend Chart */}
         <div className="anim-slide-up rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised, animationDelay: '0.3s' }}>
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -219,27 +220,95 @@ export default function InsightsPage() {
               <h2 className="text-lg font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>Calories Consumed</h2>
             </div>
           </div>
-          
-          <div className="flex h-36 items-end justify-between gap-2">
-            {weeklyData.map((d, i) => (
-              <div key={d.day} className="flex flex-1 flex-col items-center gap-2">
-                <div 
-                  className="w-full max-w-[32px] rounded-full relative group transition-all duration-300" 
-                  style={{ 
-                    height: d.calories > 0 ? `${(d.calories / maxWeeklyCal) * 100}%` : '8%',
-                    minHeight: '8px', 
-                    background: d.calories > 0 ? 'linear-gradient(to top, #2bb554, #3ecf66)' : '#d5dfd6',
-                    boxShadow: d.calories > 0 ? '2px 2px 5px #c4ccc5, inset -2px -2px 5px rgba(0,0,0,0.1)' : neu.inset
-                  }}
-                >
-                  {/* Tooltip on tap/hover */}
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-md bg-[#1a231b] px-2 py-1 text-[10px] font-bold text-white opacity-0 transition-opacity group-hover:opacity-100 group-active:opacity-100 pointer-events-none">
-                    {d.calories}
-                  </div>
+
+          {/* Y-axis labels + bars */}
+          <div className="flex gap-2">
+            {/* Y-axis */}
+            <div className="flex flex-col justify-between pb-6 pr-1" style={{ height: 160 }}>
+              {[maxWeeklyCal, Math.round(maxWeeklyCal * 0.5), 0].map(v => (
+                <span key={v} className="text-[9px] font-bold text-[#6b7e6d] leading-none text-right" style={{ minWidth: 28 }}>
+                  {v > 0 ? (v >= 1000 ? `${(v / 1000).toFixed(1)}k` : v) : '0'}
+                </span>
+              ))}
+            </div>
+
+            {/* Chart area */}
+            <div className="flex flex-1 flex-col gap-1">
+              {/* Grid lines */}
+              <div className="relative flex-1" style={{ height: 128 }}>
+                {[0, 0.5, 1].map(pct => (
+                  <div
+                    key={pct}
+                    className="absolute w-full border-t"
+                    style={{
+                      bottom: `${pct * 100}%`,
+                      borderColor: 'rgba(107,126,109,0.15)',
+                      borderStyle: pct === 0 ? 'solid' : 'dashed',
+                    }}
+                  />
+                ))}
+
+                {/* Bars */}
+                <div className="absolute inset-0 flex items-end justify-between gap-1.5 px-0.5">
+                  {weeklyData.map((d, i) => {
+                    const heightPct = d.calories > 0 ? (d.calories / maxWeeklyCal) * 100 : 0
+                    const isToday = i === weeklyData.length - 1
+                    return (
+                      <div key={d.day} className="group flex flex-1 flex-col items-center gap-1" style={{ height: '100%', justifyContent: 'flex-end' }}>
+                        {/* Calorie label above bar */}
+                        <div
+                          className="text-[9px] font-black transition-opacity duration-200"
+                          style={{
+                            color: isToday ? '#2bb554' : '#6b7e6d',
+                            opacity: d.calories > 0 ? 1 : 0,
+                            marginBottom: 2,
+                          }}
+                        >
+                          {d.calories > 0 ? (d.calories >= 1000 ? `${(d.calories / 1000).toFixed(1)}k` : d.calories) : ''}
+                        </div>
+
+                        {/* Bar */}
+                        <div
+                          className="w-full rounded-t-lg transition-all duration-500"
+                          style={{
+                            height: `${Math.max(heightPct, d.calories > 0 ? 6 : 0)}%`,
+                            minHeight: d.calories > 0 ? 6 : 0,
+                            background: d.calories > 0
+                              ? isToday
+                                ? 'linear-gradient(to top, #1e9e48, #3ecf66)'
+                                : 'linear-gradient(to top, #2bb554cc, #3ecf6699)'
+                              : 'transparent',
+                            boxShadow: d.calories > 0
+                              ? isToday
+                                ? '2px 0 8px rgba(62,207,102,0.35), inset -1px 0 0 rgba(255,255,255,0.2)'
+                                : 'inset -1px 0 0 rgba(255,255,255,0.15)'
+                              : 'none',
+                            borderBottom: 'none',
+                          }}
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
-                <span className="text-[10px] font-bold text-[#6b7e6d]">{d.day.charAt(0)}</span>
               </div>
-            ))}
+
+              {/* X-axis day labels */}
+              <div className="flex justify-between px-0.5" style={{ height: 20 }}>
+                {weeklyData.map((d, i) => {
+                  const isToday = i === weeklyData.length - 1
+                  return (
+                    <div key={d.day} className="flex flex-1 items-center justify-center">
+                      <span
+                        className="text-[10px] font-black"
+                        style={{ color: isToday ? '#2bb554' : '#6b7e6d' }}
+                      >
+                        {d.day.charAt(0)}
+                      </span>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -247,7 +316,7 @@ export default function InsightsPage() {
         <div className="anim-slide-up rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised, animationDelay: '0.4s' }}>
           <p className="text-[10px] font-black uppercase tracking-widest text-[#6b7e6d]">Meal Quality Tracker</p>
           <h2 className="mt-1 text-lg font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>Health Distribution</h2>
-          
+
           <div className="mt-6 space-y-4">
             {distItems.map(item => {
               const pct = totalScans > 0 ? Math.round((item.val / totalScans) * 100) : 0
