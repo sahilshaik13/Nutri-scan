@@ -273,17 +273,17 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Calories Today</p>
-            <p className="mt-1 text-3xl font-bold">{todayCalories} <span className="text-lg font-normal text-muted-foreground">kcal</span></p>
+            <p className="mt-1 text-3xl font-bold" suppressHydrationWarning>{todayCalories} <span className="text-lg font-normal text-muted-foreground">kcal</span></p>
           </div>
 
           <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Avg Health Score</p>
-            <p className="mt-1 text-3xl font-bold">{avgHealthScore} <span className="text-lg font-normal text-muted-foreground">/100</span></p>
+            <p className="mt-1 text-3xl font-bold" suppressHydrationWarning>{avgHealthScore} <span className="text-lg font-normal text-muted-foreground">/100</span></p>
           </div>
 
           <div className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Total Scans</p>
-            <p className="mt-1 text-3xl font-bold">{scans.length}</p>
+            <p className="mt-1 text-3xl font-bold" suppressHydrationWarning>{scans.length}</p>
           </div>
         </div>
 
