@@ -4,12 +4,13 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ChevronLeft, TrendingUp, Lightbulb, Activity, Target, Flame, ChevronRight } from 'lucide-react'
+import { ChevronLeft, Flame, Scale, TrendingUp, AlertTriangle, Lightbulb, Activity, ChevronRight, Target } from 'lucide-react'
+import { ScanDetailsDialog, type FoodScan } from '@/components/scan-details-dialog'
 
 const neu = {
-  raised:  '8px 8px 16px #c4ccc5, -8px -8px 16px #ffffff',
-  sm:      '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
-  inset:   'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff',
+  raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
+  sm:     '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
+  inset:  'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff',
 }
 
 function getHealthColor(score: number) {
@@ -21,24 +22,44 @@ function getHealthColor(score: number) {
 
 export default function InsightsPage() {
   const [scans, setScans] = useState<any[]>([])
+  const [selectedScan, setSelectedScan] = useState<FoodScan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const supabase = createClient()
 
   useEffect(() => {
     const fetchScans = async () => {
       try {
-        const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) return
-        const { data } = await supabase.from('food_scans').select('*').eq('user_id', user.id).order('created_at', { ascending: false })
+        
+        // Fetch last 30 days of scans for insights
+        const thirtyDaysAgo = new Date()
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+        
+        const { data } = await supabase
+          .from('food_scans')
+          .select('*')
+          .eq('user_id', user.id)
+          .gte('created_at', thirtyDaysAgo.toISOString())
+          .order('created_at', { ascending: false })
+          
         setScans(data || [])
       } catch (err) {
-        console.error('Error fetching insights:', err)
+        console.error('Error fetching insights data:', err)
       } finally {
-        setTimeout(() => setIsLoading(false), 800) // Artificial delay to show off the skeleton loading
+        setIsLoading(false)
       }
     }
     fetchScans()
   }, [])
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('food_scans').delete().eq('id', id)
+    if (!error) {
+      setScans(prev => prev.filter(s => s.id !== id))
+      if (selectedScan?.id === id) setSelectedScan(null)
+    }
+  }
 
   // Basic Derived Stats
   const totalScans = scans.length
@@ -249,38 +270,59 @@ export default function InsightsPage() {
           </div>
         </div>
 
-        {/* Recent Focus */}
-        <div className="anim-slide-up rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised, animationDelay: '0.5s' }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>Recent Scans</h2>
-            <Link href="/history" className="text-xs font-bold text-[#3ecf66] hover:underline">View All</Link>
+        {/* Recent Scans Subset */}
+        <section className="mt-8 mb-6">
+          <div className="mb-4 flex items-center justify-between px-2">
+            <h2 className="text-xl font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>
+              Recent Scans
+            </h2>
           </div>
           <div className="space-y-3">
-            {scans.slice(0, 3).map(scan => (
-              <Link key={scan.id} href={`/insights/${scan.id}`} className="group flex items-center justify-between rounded-2xl p-3 transition-all hover:scale-[1.02] active:scale-[0.98]" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
-                <div className="flex items-center gap-4">
-                  <div className="relative h-12 w-12 overflow-hidden rounded-xl shrink-0" style={{ boxShadow: neu.inset }}>
-                    {scan.image_url ? (
-                      <Image src={scan.image_url} alt={scan.food_name} fill className="object-cover" />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-[#eaf0eb]"><Activity className="h-4 w-4 text-[#3ecf66] opacity-50" /></div>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-[#1a231b] leading-tight">{scan.food_name}</p>
-                    <p className="text-[10px] font-semibold text-[#6b7e6d]">{new Date(scan.created_at).toLocaleDateString()}</p>
-                  </div>
+            {scans.slice(0, 3).map((scan) => (
+              <button
+                key={scan.id}
+                onClick={() => setSelectedScan(scan)}
+                className="group flex w-full items-center gap-4 text-left rounded-2xl p-3 transition-all duration-200 active:scale-[0.99]"
+                style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '10px 10px 24px #bec7bf, -10px -10px 24px #ffffff')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = neu.sm)}
+              >
+                <div className="relative h-14 w-14 flex-shrink-0 overflow-hidden rounded-xl"
+                  style={{ boxShadow: 'inset 2px 2px 5px #c4ccc5, inset -2px -2px 5px #ffffff' }}>
+                  {scan.image_url ? (
+                    <Image src={scan.image_url} alt={scan.food_name} fill className="object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-[#eaf0eb]">
+                      <Activity className="h-6 w-6 text-[#3ecf66] opacity-40" />
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-black" style={{ color: getHealthColor(scan.health_score) }}>{scan.health_score}</span>
-                  <ChevronRight className="h-4 w-4 text-[#6b7e6d] group-hover:text-[#1a231b] transition-colors" />
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-bold text-[#1a231b]">{scan.food_name}</p>
+                  <p className="text-xs text-[#6b7e6d]">
+                    {new Date(scan.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                  </p>
                 </div>
-              </Link>
+                {scan.health_score && (
+                  <div className="flex flex-col items-end">
+                    <span className="text-base font-black" style={{ color: getHealthColor(scan.health_score) }}>
+                      {scan.health_score}
+                    </span>
+                    <span className="text-[10px] font-bold text-[#6b7e6d]">/100</span>
+                  </div>
+                )}
+                <ChevronRight className="h-4 w-4 text-[#6b7e6d] transition-transform group-hover:translate-x-1" />
+              </button>
             ))}
           </div>
-        </div>
-
+        </section>
       </main>
+
+      <ScanDetailsDialog
+        scan={selectedScan}
+        onClose={() => setSelectedScan(null)}
+        onDelete={handleDelete}
+      />
     </div>
   )
 }

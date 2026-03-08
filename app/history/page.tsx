@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ChevronLeft, Calendar } from 'lucide-react'
+import { ScanDetailsDialog, type FoodScan } from '@/components/scan-details-dialog'
 
 const neu = {
   raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
@@ -20,6 +21,7 @@ function getHealthColor(score: number) {
 
 export default function HistoryPage() {
   const [scans, setScans] = useState<any[]>([])
+  const [selectedScan, setSelectedScan] = useState<FoodScan | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const supabase = createClient()
 
@@ -43,6 +45,14 @@ export default function HistoryPage() {
     }
     fetchScans()
   }, [])
+
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('food_scans').delete().eq('id', id)
+    if (!error) {
+      setScans(prev => prev.filter(s => s.id !== id))
+      if (selectedScan?.id === id) setSelectedScan(null)
+    }
+  }
 
   return (
     <div className="flex min-h-svh flex-col pb-28" style={{ background: '#eaf0eb' }}>
@@ -92,10 +102,10 @@ export default function HistoryPage() {
         ) : (
           <div className="space-y-3">
             {scans.map((scan) => (
-              <Link
+              <button
                 key={scan.id}
-                href={`/insights/${scan.id}`}
-                className="group flex items-center gap-4 rounded-2xl p-3 transition-all duration-200 active:scale-[0.99]"
+                onClick={() => setSelectedScan(scan)}
+                className="group flex w-full items-center gap-4 text-left rounded-2xl p-3 transition-all duration-200 active:scale-[0.99]"
                 style={{ background: '#eaf0eb', boxShadow: neu.sm }}
                 onMouseEnter={e => (e.currentTarget.style.boxShadow = '10px 10px 24px #bec7bf, -10px -10px 24px #ffffff')}
                 onMouseLeave={e => (e.currentTarget.style.boxShadow = neu.sm)}
@@ -138,11 +148,18 @@ export default function HistoryPage() {
                 )}
 
                 <ChevronLeft className="h-4 w-4 rotate-180 text-[#6b7e6d] transition-transform group-hover:translate-x-1" />
-              </Link>
+              </button>
             ))}
           </div>
         )}
       </main>
+
+      {/* Render the unified details modal */}
+      <ScanDetailsDialog
+        scan={selectedScan}
+        onClose={() => setSelectedScan(null)}
+        onDelete={handleDelete}
+      />
     </div>
   )
 }
