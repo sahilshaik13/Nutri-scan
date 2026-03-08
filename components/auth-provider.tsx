@@ -61,7 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     // Redirect authenticated users from auth pages to dashboard
-    if (user && pathname.startsWith('/auth/')) {
+    // Exception: /auth/reset-password must remain accessible — Supabase creates a
+    // session as part of the password reset flow before the user can set a new password.
+    if (user && pathname.startsWith('/auth/') && !pathname.startsWith('/auth/reset-password')) {
       router.replace('/dashboard')
       return
     }
