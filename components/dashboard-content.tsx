@@ -195,7 +195,7 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
     : 0
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex min-h-svh flex-col bg-background pb-24">
       {/* Background glow effects */}
       <div className="pointer-events-none fixed -bottom-32 -left-32 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
       <div className="pointer-events-none fixed -right-32 -top-32 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
@@ -357,39 +357,6 @@ export function DashboardContent({ user, initialScans }: DashboardContentProps) 
           )}
         </div>
       </main>
-
-      {/* Bottom Navigation */}
-      <nav className="sticky bottom-0 border-t border-border/10 bg-background px-4 pb-6 pt-2">
-        <div className="mx-auto flex max-w-4xl justify-around">
-          <div className="flex flex-col items-center gap-1 text-primary">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-            </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Home</span>
-          </div>
-          <Link href="/scan" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-              <circle cx="12" cy="13" r="3" />
-            </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Scan</span>
-          </Link>
-          <div className="flex flex-col items-center gap-1 text-muted-foreground/60">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="12 6 12 12 16 14" />
-            </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">History</span>
-          </div>
-          <Link href="/profile" className="flex flex-col items-center gap-1 text-muted-foreground/60 transition-colors hover:text-foreground">
-            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="8" r="4" />
-              <path d="M20 21a8 8 0 0 0-16 0" />
-            </svg>
-            <span className="text-[10px] font-medium uppercase tracking-wider">Profile</span>
-          </Link>
-        </div>
-      </nav>
 
       {/* Detail Dialog */}
       <Dialog open={!!selectedScan} onOpenChange={() => setSelectedScan(null)}>

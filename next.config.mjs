@@ -6,16 +6,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Add this block back in!
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        // Replace this with your actual deployed FastAPI URL
-        destination: 'https://nutri-scan-fvyo.onrender.com/api/:path*',
-      },
-    ]
-  },
+  // Allow cross-origin requests in development
+  allowedDevOrigins: ['*.vusercontent.net'],
 }
 
 export default nextConfig
