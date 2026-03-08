@@ -1,31 +1,35 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, Suspense } from 'react'
 
-// We create a tiny sub-component to read the URL parameters safely
+const neu = {
+  raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
+  sm:     '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
+  inset:  'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff',
+}
+
 function VerificationMessage() {
   const searchParams = useSearchParams()
   const isVerified = searchParams.get('verified') === 'true'
   const isReset = searchParams.get('reset') === 'true'
 
   if (isVerified) return (
-    <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm font-medium text-green-500">
-      ✅ Your email has been successfully verified! Please log in below.
+    <div className="mb-5 rounded-2xl p-4 text-center text-sm font-semibold text-[#2bb554]"
+      style={{ background: 'rgba(62,207,102,0.08)', border: '1px solid rgba(62,207,102,0.25)' }}>
+      ✅ Email verified successfully! Please log in.
     </div>
   )
-
   if (isReset) return (
-    <div className="mb-6 rounded-xl border border-green-500/30 bg-green-500/10 p-4 text-center text-sm font-medium text-green-500">
-      ✅ Password updated successfully! Please sign in with your new password.
+    <div className="mb-5 rounded-2xl p-4 text-center text-sm font-semibold text-[#2bb554]"
+      style={{ background: 'rgba(62,207,102,0.08)', border: '1px solid rgba(62,207,102,0.25)' }}>
+      ✅ Password updated! Sign in with your new password.
     </div>
   )
-
   return null
 }
 
@@ -42,134 +46,112 @@ export default function LoginPage() {
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       router.push('/dashboard')
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : 'An error occurred')
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
-      {/* Background glow effects */}
-      <div className="pointer-events-none fixed -bottom-24 -left-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none fixed -right-24 -top-24 h-64 w-64 rounded-full bg-primary/5 blur-3xl" />
-      
+    <div className="flex min-h-svh flex-col" style={{ background: '#eaf0eb' }}>
       {/* Header */}
-      <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 pb-2">
-        <Link 
-          href="/" 
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-primary/10"
+      <div className="flex items-center justify-between px-5 pt-5 pb-2">
+        <Link href="/"
+          className="flex h-10 w-10 items-center justify-center rounded-xl transition-all hover:scale-105"
+          style={{ background: '#eaf0eb', boxShadow: neu.sm }}
         >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M6 8L2 12l4 4" />
-            <path d="M2 12h20" />
+          <svg className="h-5 w-5 text-[#6b7e6d]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6 8L2 12l4 4" /><path d="M2 12h20" />
           </svg>
         </Link>
-        <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-primary/20 p-1.5">
-            <svg
-              className="h-6 w-6 text-primary"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="#3ecf66" strokeWidth="2.2">
               <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
               <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
             </svg>
           </div>
-          <h2 className="text-lg font-bold leading-tight tracking-tight">NutriScan</h2>
-        </div>
-        <div className="h-12 w-12 shrink-0" />
+          <span className="text-base font-black text-[#1a231b]">NutriScan</span>
+        </Link>
+        <div className="w-10" />
       </div>
 
-      {/* Main Content */}
-      <main className="mx-auto flex w-full max-w-[480px] flex-1 flex-col items-center justify-start px-6 pt-10">
-        {/* Header Section */}
-        <div className="mb-6 w-full text-center">
-          <h1 className="mb-3 text-[32px] font-extrabold leading-tight tracking-tight">
+      {/* Main */}
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-10">
+        {/* Title */}
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-3xl font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>
             Welcome back
           </h1>
-          <p className="text-base font-normal text-muted-foreground">
-            Sign in to continue your healthy journey
-          </p>
+          <p className="text-sm font-medium text-[#6b7e6d]">Sign in to continue your healthy journey</p>
         </div>
 
-        {/* We wrap the verification message in Suspense. 
-          If the URL has ?verified=true, it shows the green success banner here! 
-        */}
         <Suspense fallback={null}>
-          <div className="w-full">
-            <VerificationMessage />
-          </div>
+          <VerificationMessage />
         </Suspense>
 
         {/* Divider */}
-        <div className="mb-8 flex w-full items-center">
-          <div className="h-px flex-1 bg-border" />
-          <span className="px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-            Email Login
-          </span>
-          <div className="h-px flex-1 bg-border" />
+        <div className="mb-7 flex items-center gap-4">
+          <div className="h-px flex-1" style={{ background: '#d5dfd6' }} />
+          <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Email Login</span>
+          <div className="h-px flex-1" style={{ background: '#d5dfd6' }} />
         </div>
 
-        {/* Credentials Form */}
-        <form onSubmit={handleLogin} className="flex w-full flex-col gap-5">
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="email" className="ml-1 text-sm font-semibold">
+        {/* Form */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="email" className="ml-1 text-xs font-bold uppercase tracking-wide text-[#6b7e6d]">
               Email Address
             </Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-14 rounded-xl border-border bg-card px-4 text-base font-medium placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/50"
-            />
+            <div className="rounded-2xl" style={{ boxShadow: neu.inset, background: '#eaf0eb' }}>
+              <input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                className="h-13 w-full rounded-2xl bg-transparent px-4 py-3.5 text-sm font-medium text-[#1a231b] placeholder:text-[#6b7e6d]/50 outline-none"
+              />
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1.5">
             <div className="ml-1 flex items-center justify-between">
-              <Label htmlFor="password" className="text-sm font-semibold">
+              <Label htmlFor="password" className="text-xs font-bold uppercase tracking-wide text-[#6b7e6d]">
                 Password
               </Label>
-              <Link href="/auth/forgot-password" className="text-sm font-bold text-primary hover:underline">
+              <Link href="/auth/forgot-password" className="text-xs font-bold text-[#3ecf66] hover:underline">
                 Forgot?
               </Link>
             </div>
-            <div className="relative flex w-full">
-              <Input
+            <div className="relative rounded-2xl" style={{ boxShadow: neu.inset, background: '#eaf0eb' }}>
+              <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 required
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-14 rounded-xl border-border bg-card px-4 pr-12 text-base font-medium placeholder:text-muted-foreground/50 focus:ring-2 focus:ring-primary/50"
+                onChange={e => setPassword(e.target.value)}
+                className="h-13 w-full rounded-2xl bg-transparent px-4 py-3.5 pr-12 text-sm font-medium text-[#1a231b] placeholder:text-[#6b7e6d]/50 outline-none"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 flex -translate-y-1/2 cursor-pointer items-center justify-center text-muted-foreground"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#6b7e6d] hover:text-[#1a231b]"
               >
                 {showPassword ? (
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                     <line x1="1" x2="23" y1="1" y2="23" />
                   </svg>
                 ) : (
-                  <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                     <circle cx="12" cy="12" r="3" />
                   </svg>
@@ -179,37 +161,36 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="rounded-2xl p-3 text-sm font-medium text-[#e05555]"
+              style={{ background: 'rgba(224,85,85,0.08)', border: '1px solid rgba(224,85,85,0.2)' }}>
               {error}
-            </p>
+            </div>
           )}
 
-          <Button 
-            type="submit" 
-            className="mt-4 h-14 rounded-xl bg-primary text-lg font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+          <button
+            type="submit"
             disabled={isLoading}
+            className="mt-2 h-13 w-full rounded-2xl py-3.5 text-base font-bold text-white transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-60"
+            style={{ background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '4px 4px 12px #becea5, -3px -3px 8px #ffffff' }}
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
-          </Button>
+            {isLoading ? 'Signing in…' : 'Sign In'}
+          </button>
         </form>
 
-        {/* Footer / Toggle */}
-        <div className="mt-auto py-8 text-center">
-          <p className="text-sm text-muted-foreground">
-            {"Don't have an account? "}
-            <Link href="/auth/sign-up" className="font-bold text-primary hover:underline">
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-sm text-[#6b7e6d]">
+            Don&apos;t have an account?{' '}
+            <Link href="/auth/sign-up" className="font-bold text-[#3ecf66] hover:underline">
               Create Account
             </Link>
           </p>
         </div>
 
-        {/* Legal Links */}
-        <div className="flex gap-4 pb-10 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-          <a href="#" className="hover:text-primary">Terms</a>
-          <span>-</span>
-          <a href="#" className="hover:text-primary">Privacy</a>
-          <span>-</span>
-          <a href="#" className="hover:text-primary">Help</a>
+        <div className="mt-6 flex justify-center gap-6 text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">
+          {['Terms', 'Privacy', 'Help'].map(l => (
+            <a key={l} href="#" className="hover:text-[#3ecf66] transition-colors">{l}</a>
+          ))}
         </div>
       </main>
     </div>

@@ -1,50 +1,39 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Leaf, Mail, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+
+const neu = { raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff', sm: '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff' }
 
 export default function SignUpSuccessPage() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-background p-6 md:p-10">
+    <div className="flex min-h-svh flex-col items-center justify-center px-6" style={{ background: '#eaf0eb' }}>
       <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <div className="flex items-center justify-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-              <Leaf className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold text-foreground">NutriScan</span>
+        {/* Logo */}
+        <div className="mb-10 flex flex-col items-center gap-3">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl" style={{ background: '#eaf0eb', boxShadow: neu.raised }}>
+            <Leaf className="h-7 w-7 text-[#3ecf66]" />
           </div>
-          <Card>
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Mail className="h-6 w-6 text-primary" />
-              </div>
-              <CardTitle className="text-2xl">Check your email</CardTitle>
-              <CardDescription>
-                {"We've sent you a confirmation link"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-6">
-              <p className="text-center text-sm text-muted-foreground">
-                Please check your email and click the confirmation link to activate your account. 
-                Once confirmed, you can start scanning your food and tracking nutrition.
-              </p>
-              
-              {/* Back to Home Button added here */}
-              <Button asChild variant="outline" className="w-full">
-                <Link href="/">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Home
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          <span className="text-xl font-black text-[#1a231b]">NutriScan</span>
+        </div>
+
+        {/* Card */}
+        <div className="rounded-3xl p-8 text-center" style={{ background: '#eaf0eb', boxShadow: neu.raised }}>
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
+            style={{ background: '#eaf0eb', boxShadow: 'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff' }}>
+            <Mail className="h-7 w-7 text-[#3ecf66]" />
+          </div>
+          <h1 className="mb-2 text-2xl font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>
+            Check your email
+          </h1>
+          <p className="mb-2 text-sm font-semibold text-[#6b7e6d]">We&apos;ve sent you a confirmation link</p>
+          <p className="mb-8 text-sm leading-relaxed text-[#6b7e6d]">
+            Click the link in your email to activate your account and start scanning food for nutrition insights.
+          </p>
+          <Link href="/"
+            className="flex w-full items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold text-[#6b7e6d] transition-all hover:scale-[1.02] active:scale-95"
+            style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+            <ArrowLeft className="h-4 w-4" />
+            Back to Home
+          </Link>
         </div>
       </div>
     </div>

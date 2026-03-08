@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
+
 import { CameraCapture } from '@/components/camera-capture'
 import { ImageUpload } from '@/components/image-upload'
 import { AnalysisQuestions } from '@/components/analysis-questions'
@@ -322,76 +322,74 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="flex min-h-svh flex-col bg-background pb-24">
-      <div className="pointer-events-none fixed -bottom-16 -left-16 h-48 w-48 rounded-full bg-primary/10 blur-3xl sm:-bottom-32 sm:-left-32 sm:h-96 sm:w-96" />
-      <div className="pointer-events-none fixed -right-16 -top-16 h-48 w-48 rounded-full bg-primary/5 blur-3xl sm:-right-32 sm:-top-32 sm:h-96 sm:w-96" />
-
-      <main className="mx-auto w-full max-w-2xl flex-1 px-3 py-4 sm:p-6 pt-6">
+    <div className="flex min-h-svh flex-col pb-28" style={{ background: '#eaf0eb' }}>
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6">
         {error && (
-          <div className="mb-4 rounded-xl border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive sm:p-4">
+          <div className="mb-4 rounded-2xl p-4 text-sm font-medium text-[#e05555]"
+            style={{ background: 'rgba(224,85,85,0.08)', border: '1px solid rgba(224,85,85,0.2)' }}>
             {error}
           </div>
         )}
 
         {step === 'capture' && (
-          <div className="space-y-4 sm:space-y-6">
-            <div className="overflow-hidden rounded-xl border border-border/50 bg-card sm:rounded-2xl">
+          <div className="space-y-4">
+            <div className="overflow-hidden rounded-3xl" style={{ boxShadow: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff' }}>
               {capturedImage ? (
-                <div className="relative aspect-[4/3] sm:aspect-video">
+                <div className="relative aspect-[4/3]">
                   <Image
                     src={`data:${mimeType};base64,${capturedImage}`}
                     alt="Captured food"
                     fill
                     className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background/60 to-transparent" />
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2 rounded-lg bg-background/80 px-2.5 py-1 backdrop-blur-sm sm:bottom-4 sm:left-4 sm:px-3 sm:py-1.5">
-                    <svg className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" viewBox="0 0 24 24" fill="currentColor">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                  <div className="absolute bottom-4 left-4 flex items-center gap-2 rounded-xl bg-white/80 px-3 py-1.5 backdrop-blur-sm">
+                    <svg className="h-3.5 w-3.5 text-[#3ecf66]" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                     </svg>
-                    <span className="text-[10px] font-bold uppercase tracking-wider sm:text-xs">Ready to Scan</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a231b]">Ready to Scan</span>
                   </div>
                 </div>
               ) : (
-                <div className="flex aspect-[4/3] flex-col items-center justify-center gap-3 bg-card/50 sm:aspect-video sm:gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 sm:h-20 sm:w-20 sm:rounded-2xl">
-                    <svg className="h-8 w-8 text-primary/60 sm:h-10 sm:w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <div className="flex aspect-[4/3] flex-col items-center justify-center gap-4" style={{ background: '#eaf0eb' }}>
+                  <div className="flex h-20 w-20 items-center justify-center rounded-2xl" style={{ boxShadow: 'inset 4px 4px 10px #c4ccc5, inset -4px -4px 10px #ffffff' }}>
+                    <svg className="h-9 w-9 text-[#3ecf66] opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                       <circle cx="9" cy="9" r="2" />
                       <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
                     </svg>
                   </div>
-                  <div className="text-center px-4">
-                    <p className="text-sm font-semibold sm:text-base">No image captured yet</p>
-                    <p className="text-xs text-muted-foreground sm:text-sm">Take a photo or upload an image</p>
+                  <div className="text-center px-6">
+                    <p className="text-base font-bold text-[#1a231b]">No image yet</p>
+                    <p className="mt-1 text-sm text-[#6b7e6d]">Take a photo or upload an image below</p>
                   </div>
                 </div>
               )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-              <Button 
-                size="lg" 
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
                 onClick={() => setShowCamera(true)}
-                className="h-14 rounded-xl bg-primary text-base font-bold text-primary-foreground shadow-lg shadow-primary/20 transition-all active:scale-[0.98] sm:h-16 sm:rounded-2xl sm:text-lg sm:hover:-translate-y-0.5"
+                className="flex h-14 items-center justify-center gap-2 rounded-2xl text-base font-bold text-white transition-all hover:scale-[1.02] active:scale-95"
+                style={{ background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '4px 4px 12px #becea5, -3px -3px 8px #ffffff' }}
               >
-                <svg className="mr-2 h-5 w-5 sm:mr-3 sm:h-6 sm:w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                   <circle cx="12" cy="13" r="3" />
                 </svg>
                 Take Photo
-              </Button>
+              </button>
               <ImageUpload onUpload={handleImageCapture} />
             </div>
 
-            <div className="flex justify-center pt-2">
-              <Link 
+            <div className="flex justify-center pt-1">
+              <Link
                 href="/dashboard"
-                className="flex items-center gap-2 rounded-full border border-border/50 bg-card/50 px-4 py-2.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground active:bg-card/80 sm:py-2"
+                className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-[#6b7e6d] transition-all hover:text-[#1a231b]"
+                style={{ background: '#eaf0eb', boxShadow: '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff' }}
               >
-                <svg className="h-4 w-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
+                <svg className="h-4 w-4 text-[#3ecf66]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
                 </svg>
                 View Recent Scans
               </Link>
@@ -400,17 +398,19 @@ export default function ScanPage() {
         )}
 
         {step === 'analyzing' && (
-          <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
-            <div className="relative mb-6 sm:mb-8">
-              <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 sm:h-24 sm:w-24">
-                <svg className="h-10 w-10 animate-pulse text-primary sm:h-12 sm:w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-[#3ecf66]/20" style={{ animationDuration: '2s' }} />
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl" style={{ background: '#eaf0eb', boxShadow: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff' }}>
+                <svg className="h-11 w-11 animate-pulse text-[#3ecf66]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2" />
                 </svg>
               </div>
             </div>
-            <h2 className="mb-2 text-center text-lg font-bold sm:text-xl">Analyzing your food...</h2>
-            <p className="text-center text-sm text-muted-foreground sm:text-base">Our AI is identifying ingredients</p>
+            <div className="text-center">
+              <h2 className="mb-1.5 text-xl font-black text-[#1a231b]">Analyzing your food…</h2>
+              <p className="text-sm text-[#6b7e6d]">Our AI is identifying ingredients</p>
+            </div>
           </div>
         )}
 
@@ -445,17 +445,19 @@ export default function ScanPage() {
         )}
 
         {step === 'calculating' && (
-          <div className="flex min-h-[50vh] flex-col items-center justify-center px-4 py-12 sm:py-20">
-            <div className="relative mb-6 sm:mb-8">
-              <div className="absolute inset-0 animate-ping rounded-full bg-primary/20" style={{ animationDuration: '2s' }} />
-              <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-primary/10 sm:h-24 sm:w-24">
-                <svg className="h-10 w-10 animate-spin text-primary sm:h-12 sm:w-12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex min-h-[60vh] flex-col items-center justify-center gap-6 px-4">
+            <div className="relative">
+              <div className="absolute inset-0 animate-ping rounded-full bg-[#3ecf66]/20" style={{ animationDuration: '2s' }} />
+              <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl" style={{ background: '#eaf0eb', boxShadow: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff' }}>
+                <svg className="h-11 w-11 animate-spin text-[#3ecf66]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                 </svg>
               </div>
             </div>
-            <h2 className="mb-2 text-center text-lg font-bold sm:text-xl">Calculating nutrition...</h2>
-            <p className="text-center text-sm text-muted-foreground sm:text-base">Building your nutrition profile</p>
+            <div className="text-center">
+              <h2 className="mb-1.5 text-xl font-black text-[#1a231b]">Calculating nutrition…</h2>
+              <p className="text-sm text-[#6b7e6d]">Building your nutrition profile</p>
+            </div>
           </div>
         )}
 

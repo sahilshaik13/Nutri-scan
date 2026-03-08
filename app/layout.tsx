@@ -1,38 +1,42 @@
 import type { Metadata, Viewport } from 'next'
-import { Manrope, Geist_Mono } from 'next/font/google'
+import { Plus_Jakarta_Sans, Nunito, Playfair_Display, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { BottomNavigation } from '@/components/bottom-navigation'
 import { AuthProvider } from '@/components/auth-provider'
 import './globals.css'
 
-const manrope = Manrope({ 
-  subsets: ["latin"],
-  variable: '--font-manrope',
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
   display: 'swap',
-});
-const geistMono = Geist_Mono({ 
-  subsets: ["latin"],
+})
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+  display: 'swap',
+})
+
+const playfairDisplay = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+})
+
+const geistMono = Geist_Mono({
+  subsets: ['latin'],
   variable: '--font-geist-mono',
   display: 'swap',
-});
+})
 
 export const metadata: Metadata = {
   title: 'NutriScan - AI Food Nutrition Analyzer',
   description: 'Scan your food and get instant nutritional insights powered by AI',
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-dark-32x32.png',  media: '(prefers-color-scheme: dark)' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
     ],
     apple: '/apple-icon.png',
   },
@@ -51,8 +55,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f6f8f6' },
-    { media: '(prefers-color-scheme: dark)', color: '#102216' },
+    { media: '(prefers-color-scheme: light)', color: '#eaf0eb' },
+    { media: '(prefers-color-scheme: dark)',  color: '#1a1f1b' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -62,31 +66,21 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
-        {/* Preload critical fonts */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS prefetch for Supabase and analytics */}
-        <link rel="dns-prefetch" href="https://xyzsupabaseproject.supabase.co" />
         <link rel="dns-prefetch" href="https://vitals.vercel-analytics.com" />
-        
-        {/* Preload critical resources */}
         <link rel="preload" as="image" href="/icon.svg" />
-        
-        {/* Prefetch important pages */}
         <link rel="prefetch" href="/dashboard" as="document" />
         <link rel="prefetch" href="/scan" as="document" />
-        
-        {/* Performance optimizations */}
         <meta httpEquiv="x-ua-compatible" content="ie=edge" />
       </head>
-      <body className={`${manrope.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body
+        className={`${plusJakartaSans.variable} ${nunito.variable} ${playfairDisplay.variable} ${geistMono.variable} font-sans antialiased`}
+      >
         <AuthProvider>
           {children}
           <BottomNavigation />
