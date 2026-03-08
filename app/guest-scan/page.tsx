@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { CameraCapture } from '@/components/camera-capture'
@@ -8,6 +8,7 @@ import { ImageUpload } from '@/components/image-upload'
 import { AnalysisQuestions } from '@/components/analysis-questions'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useGuestSession } from '@/hooks/use-guest-session'
 
 interface Question {
   id: string
@@ -65,6 +66,7 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 export default function GuestScanPage() {
   const router = useRouter()
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
+  const { guestId, saveToGuestSession, isLoading: sessionLoading } = useGuestSession()
   
   const [step, setStep] = useState<ScanStep>('capture')
   const [showCamera, setShowCamera] = useState(false)
@@ -163,6 +165,7 @@ export default function GuestScanPage() {
           initial_ingredients: initialAnalysis.ingredients,
           answers,
           health_profile: null, // Guest has no health profile
+          guest_id: guestId,
         }),
       })
 
@@ -172,6 +175,16 @@ export default function GuestScanPage() {
 
       const data: NutritionData = await response.json()
       setNutritionData(data)
+      
+      // Save scan to guest session
+      if (guestId && data) {
+        await saveToGuestSession({
+          food_name: data.food_name,
+          nutrition_data: data,
+          created_at: new Date().toISOString(),
+        })
+      }
+      
       setStep('results')
     } catch {
       setError('Failed to calculate nutrition. Please try again.')
