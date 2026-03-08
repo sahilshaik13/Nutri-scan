@@ -36,9 +36,19 @@ export async function updateSession(request: NextRequest) {
     },
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null;
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch (error: any) {
+    // If the error is just an invalid refresh token, we can safely ignore it.
+    // The user will simply be treated as unauthenticated and redirected to login.
+    if (error?.status === 400 && error?.code === 'refresh_token_not_found') {
+      console.log('[Auth] User session expired or invalid refresh token. Continuing as guest.')
+    } else {
+      console.error('[Auth] Error getting user in middleware:', error)
+    }
+  }
 
   // Protected routes - redirect to login if not authenticated
   const protectedPaths = ['/dashboard', '/scan', '/onboarding']

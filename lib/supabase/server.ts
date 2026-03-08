@@ -9,7 +9,13 @@ export async function createClient() {
     // Return a mock client for when Supabase is not configured
     return {
       auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getUser: async () => {
+          try {
+            return { data: { user: null }, error: null }
+          } catch (e) {
+             return { data: { user: null }, error: e }
+          }
+        },
       },
       from: () => ({
         select: () => ({ eq: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
@@ -19,7 +25,7 @@ export async function createClient() {
   
   const cookieStore = await cookies()
 
-  return createServerClient(url, key, {
+  const client = createServerClient(url, key, {
       cookies: {
         getAll() {
           return cookieStore.getAll()
@@ -39,4 +45,20 @@ export async function createClient() {
       },
     },
   )
+
+  // Override getUser to swallow invalid refresh token errors
+  const originalGetUser = client.auth.getUser
+  client.auth.getUser = async (...args) => {
+    try {
+      return await originalGetUser.apply(client.auth, args)
+    } catch (error: any) {
+      if (error?.status === 400 && error?.code === 'refresh_token_not_found') {
+        // Silently fail and return no user
+        return { data: { user: null }, error: error } as any
+      }
+      throw error // re-throw other legitimate errors
+    }
+  }
+
+  return client
 }

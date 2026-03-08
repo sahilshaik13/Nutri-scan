@@ -46,12 +46,34 @@ export default function LoginPage() {
     const supabase = createClient()
     setIsLoading(true)
     setError(null)
+    console.log('[Login Attempt]', { email, hasPassword: !!password, supabaseActive: !!supabase.auth })
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) throw error
+      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError) throw signInError
       router.push('/dashboard')
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
+    } catch (err: any) {
+      console.error('[Login Error Debug]:', err)
+      
+      // Attempt to extract the most descriptive error message possible
+      let errorMessage = 'An error occurred during sign in. Check console.'
+      
+      if (typeof err === 'string') {
+        errorMessage = err
+      } else if (err?.message) {
+        errorMessage = err.message
+      } else if (err?.error_description) {
+        errorMessage = err.error_description
+      } else if (err?.error?.message) {
+        errorMessage = err.error.message
+      } else if (err instanceof Error) {
+        errorMessage = err.message
+      } else if (err && typeof err === 'object') {
+        try {
+          errorMessage = 'API Error: ' + JSON.stringify(err)
+        } catch { /* ignore JSON stringify errors */ }
+      }
+      
+      setError(errorMessage)
     } finally {
       setIsLoading(false)
     }
