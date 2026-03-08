@@ -162,7 +162,7 @@ async def call_gemini_api(contents: list, max_retries: int = 2) -> str:
 async def health() -> dict[str, Any]:
     return {"status": "ok", "gemini_configured": len(VALID_API_KEYS) > 0}
 
-@app.post("/api/guest/session")
+@app.post("/guest/session")
 async def create_guest_session():
     """Create a new guest session for unauthenticated users"""
     guest_id = str(uuid.uuid4())
@@ -174,7 +174,7 @@ async def create_guest_session():
     logger.info(f"[v0] Created guest session: {guest_id}")
     return {"guest_id": guest_id}
 
-@app.get("/api/guest/session/{guest_id}")
+@app.get("/guest/session/{guest_id}")
 async def get_guest_session(guest_id: str):
     """Retrieve guest session data"""
     if guest_id not in GUEST_SESSIONS:
@@ -182,7 +182,7 @@ async def get_guest_session(guest_id: str):
     logger.info(f"[v0] Retrieved guest session: {guest_id}")
     return GUEST_SESSIONS[guest_id]
 
-@app.post("/api/guest/session/{guest_id}/scan")
+@app.post("/guest/session/{guest_id}/scan")
 async def save_guest_scan(guest_id: str, scan_data: dict):
     """Save a scan to guest session"""
     if guest_id not in GUEST_SESSIONS:

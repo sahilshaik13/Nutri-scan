@@ -64,7 +64,13 @@ type ScanStep = 'capture' | 'analyzing' | 'questions' | 'calculating' | 'results
 
 export default function GuestScanPage() {
   const router = useRouter()
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
+  
+  // Get API URL - defaults to /api for same-origin requests
+  const getApiUrl = () => {
+    if (typeof window === 'undefined') return '/api'
+    return process.env.NEXT_PUBLIC_API_URL || '/api'
+  }
+  
   const { guestId, saveToGuestSession, isLoading: sessionLoading } = useGuestSession()
   
   const [step, setStep] = useState<ScanStep>('capture')
@@ -83,7 +89,8 @@ export default function GuestScanPage() {
     setStep('analyzing')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/analyze-image`, {
+      const apiUrl = getApiUrl()
+      const response = await fetch(`${apiUrl}/analyze-image`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -156,7 +163,8 @@ export default function GuestScanPage() {
     setStep('calculating')
     
     try {
-      const response = await fetch(`${API_BASE_URL}/api/calculate-nutrition`, {
+      const apiUrl = getApiUrl()
+      const response = await fetch(`${apiUrl}/calculate-nutrition`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

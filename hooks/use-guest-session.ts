@@ -12,7 +12,14 @@ export function useGuestSession() {
   const [guestId, setGuestId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [scans, setScans] = useState<GuestScan[]>([])
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:10000'
+  
+  // Determine API base URL - use /api for same-origin requests
+  const getApiUrl = () => {
+    if (typeof window === 'undefined') return '/api'
+    // In development with separate backend: http://localhost:10000
+    // In production or sandbox: /api
+    return process.env.NEXT_PUBLIC_API_URL || '/api'
+  }
 
   // Initialize guest session on mount
   useEffect(() => {
@@ -26,7 +33,8 @@ export function useGuestSession() {
           console.log('[v0] Using existing guest session:', storedGuestId)
         } else {
           // Create new guest session
-          const response = await fetch(`${API_BASE_URL}/api/guest/session`, {
+          const apiUrl = getApiUrl()
+          const response = await fetch(`${apiUrl}/guest/session`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
           })
@@ -57,7 +65,8 @@ export function useGuestSession() {
     if (!guestId) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/guest/session/${guestId}`, {
+      const apiUrl = getApiUrl()
+      const response = await fetch(`${apiUrl}/guest/session/${guestId}`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       })
@@ -80,7 +89,8 @@ export function useGuestSession() {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/guest/session/${guestId}/scan`, {
+      const apiUrl = getApiUrl()
+      const response = await fetch(`${apiUrl}/guest/session/${guestId}/scan`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(scan),
