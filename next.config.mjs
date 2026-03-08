@@ -18,7 +18,6 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['@radix-ui/react-*', 'lucide-react'],
-    scrollRestoration: true,
   },
 
   // Headers for caching and performance
