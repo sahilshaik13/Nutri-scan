@@ -78,33 +78,56 @@ export default function HistoryPage() {
       {/* Content */}
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-5">
         {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="flex w-full items-center gap-4 rounded-2xl p-3"
-                style={{ background: '#eaf0eb', boxShadow: neu.sm }}
-              >
-                {/* Thumbnail skeleton */}
+          <>
+            <style>{`
+              @keyframes shimmer { 100% { transform: translateX(100%); } }
+              .shimmer-effect {
+                position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+                transform: translateX(-100%);
+                background-image: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+                animation: shimmer 1.5s infinite ease-in-out;
+              }
+            `}</style>
+            <div className="space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
                 <div
-                  className="h-16 w-16 flex-shrink-0 animate-pulse rounded-xl bg-[#d5dfd6]"
-                />
-                {/* Text skeleton */}
-                <div className="flex-1 min-w-0 space-y-2">
-                  <div className="h-4 w-3/5 animate-pulse rounded bg-[#d5dfd6]" />
-                  <div className="h-3 w-2/5 animate-pulse rounded bg-[#d5dfd6]" />
-                  <div className="h-3 w-1/4 animate-pulse rounded bg-[#d5dfd6]" />
+                  key={i}
+                  className="flex w-full items-center gap-4 rounded-2xl p-3"
+                  style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                >
+                  {/* Thumbnail skeleton */}
+                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-[#dde6de]">
+                    <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15}s` }} />
+                  </div>
+                  {/* Text skeleton */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="relative h-4 w-3/5 overflow-hidden rounded bg-[#dde6de]">
+                      <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.1}s` }} />
+                    </div>
+                    <div className="relative h-3 w-2/5 overflow-hidden rounded bg-[#dde6de]">
+                      <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.2}s` }} />
+                    </div>
+                    <div className="relative h-3 w-1/4 overflow-hidden rounded bg-[#dde6de]">
+                      <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.3}s` }} />
+                    </div>
+                  </div>
+                  {/* Score skeleton */}
+                  <div className="flex-shrink-0 space-y-1 text-right">
+                    <div className="relative ml-auto h-6 w-10 overflow-hidden rounded-lg bg-[#dde6de]">
+                      <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.2}s` }} />
+                    </div>
+                    <div className="relative ml-auto h-2.5 w-6 overflow-hidden rounded bg-[#dde6de]">
+                      <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.3}s` }} />
+                    </div>
+                  </div>
+                  {/* Chevron skeleton */}
+                  <div className="relative h-4 w-4 overflow-hidden rounded bg-[#dde6de]">
+                    <div className="shimmer-effect" style={{ animationDelay: `${i * 0.15 + 0.4}s` }} />
+                  </div>
                 </div>
-                {/* Score skeleton */}
-                <div className="flex-shrink-0 space-y-1 text-right">
-                  <div className="ml-auto h-6 w-10 animate-pulse rounded-lg bg-[#d5dfd6]" />
-                  <div className="ml-auto h-2.5 w-6 animate-pulse rounded bg-[#d5dfd6]" />
-                </div>
-                {/* Chevron skeleton */}
-                <div className="h-4 w-4 animate-pulse rounded bg-[#d5dfd6]" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         ) : scans.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
             <div className="flex h-20 w-20 items-center justify-center rounded-3xl"
