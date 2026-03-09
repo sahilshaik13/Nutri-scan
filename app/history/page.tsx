@@ -79,8 +79,30 @@ export default function HistoryPage() {
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-5">
         {isLoading ? (
           <div className="space-y-3">
-            {[1,2,3,4,5].map(i => (
-              <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: '#eaf0eb', boxShadow: neu.sm }} />
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex w-full items-center gap-4 rounded-2xl p-3"
+                style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+              >
+                {/* Thumbnail skeleton */}
+                <div
+                  className="h-16 w-16 flex-shrink-0 animate-pulse rounded-xl bg-[#d5dfd6]"
+                />
+                {/* Text skeleton */}
+                <div className="flex-1 min-w-0 space-y-2">
+                  <div className="h-4 w-3/5 animate-pulse rounded bg-[#d5dfd6]" />
+                  <div className="h-3 w-2/5 animate-pulse rounded bg-[#d5dfd6]" />
+                  <div className="h-3 w-1/4 animate-pulse rounded bg-[#d5dfd6]" />
+                </div>
+                {/* Score skeleton */}
+                <div className="flex-shrink-0 space-y-1 text-right">
+                  <div className="ml-auto h-6 w-10 animate-pulse rounded-lg bg-[#d5dfd6]" />
+                  <div className="ml-auto h-2.5 w-6 animate-pulse rounded bg-[#d5dfd6]" />
+                </div>
+                {/* Chevron skeleton */}
+                <div className="h-4 w-4 animate-pulse rounded bg-[#d5dfd6]" />
+              </div>
             ))}
           </div>
         ) : scans.length === 0 ? (
