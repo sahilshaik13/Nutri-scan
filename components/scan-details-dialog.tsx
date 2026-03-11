@@ -108,6 +108,23 @@ function formatRating(rating: string) {
   return rating.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
+function getImpactScore(level: string): number {
+  switch (level) {
+    case 'safe':    return 2
+    case 'caution': return 4
+    case 'warning': return 7
+    case 'danger':  return 9
+    default:        return 5
+  }
+}
+
+function getScoreLabel(score: number): string {
+  if (score <= 3) return 'Low Risk'
+  if (score <= 5) return 'Moderate'
+  if (score <= 7) return 'High Risk'
+  return 'Avoid'
+}
+
 const neu = {
   raised:  '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
   sm:      '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
@@ -231,30 +248,51 @@ export function ScanDetailsDialog({ scan, onClose, onDelete }: ScanDetailsDialog
                scan.nutrition_data.personal_health_impacts.length > 0 && (
                 <div>
                   <h4 className="mb-3 text-xs font-black uppercase tracking-wider text-[#3ecf66]">How This Affects You</h4>
-                  <div className="space-y-2">
+                  <div className="rounded-2xl px-4 py-1" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
                     {scan.nutrition_data.personal_health_impacts
                       .sort((a, b) => ({ danger: 0, warning: 1, caution: 2, safe: 3 }[a.impact_level] ?? 4) - ({ danger: 0, warning: 1, caution: 2, safe: 3 }[b.impact_level] ?? 4))
                       .map((impact, i) => {
+                        const score = getImpactScore(impact.impact_level)
+                        const percent = ((score - 1) / 9) * 100
                         const c = getImpactColor(impact.impact_level)
+                        const oneLiner = (() => {
+                          const first = impact.explanation.split(/\.\s/)[0].replace(/\.$/, '')
+                          return first.length > 90 ? first.slice(0, 87) + '…' : first
+                        })()
                         return (
-                          <div key={i} className="rounded-2xl border p-4" style={{ background: c.bg, borderColor: c.border }}>
-                            <div className="mb-2 flex items-center gap-2">
-                              <span style={{ color: c.icon }}>{getImpactIcon(impact.impact_level)}</span>
-                              <span className="text-sm font-bold" style={{ color: c.text }}>{impact.condition}</span>
-                              <span className="ml-auto rounded-full px-2 py-0.5 text-[10px] font-bold capitalize" style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}>
-                                {impact.impact_level}
+                          <div key={i} className="flex flex-col gap-2 py-3 border-b last:border-b-0" style={{ borderColor: 'rgba(196,204,197,0.35)' }}>
+                            {/* Top row */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span style={{ color: c.icon }}>{getImpactIcon(impact.impact_level)}</span>
+                                <span className="text-sm font-bold text-[#1a231b] truncate">{impact.condition}</span>
+                              </div>
+                              <span
+                                className="text-[10px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
+                                style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+                              >
+                                {getScoreLabel(score)}
                               </span>
                             </div>
-                            <p className="text-xs text-[#6b7e6d]">{impact.explanation}</p>
-                            {impact.ingredients_of_concern?.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-1">
-                                {impact.ingredients_of_concern.map((ing, j) => (
-                                  <span key={j} className="rounded-lg px-2 py-0.5 text-[10px] font-semibold" style={{ background: c.bg, color: c.text }}>
-                                    {ing}
-                                  </span>
-                                ))}
+                            {/* 1-liner */}
+                            <p className="text-xs leading-relaxed text-[#6b7e6d]">{oneLiner}.</p>
+                            {/* Scale bar */}
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-[#6b7e6d] shrink-0">1</span>
+                              <div className="relative flex-1 h-2 rounded-full overflow-visible" style={{ background: 'rgba(0,0,0,0.07)' }}>
+                                <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(to right, #3ecf66, #f5d90a 40%, #ffb020 65%, #ff4b4b)' }} />
+                                <div
+                                  className="absolute top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-white"
+                                  style={{
+                                    left: `calc(${percent}% - 7px)`,
+                                    background: percent > 65 ? '#ff4b4b' : percent > 40 ? '#ffb020' : '#3ecf66',
+                                    boxShadow: '0 1px 4px rgba(0,0,0,0.25)'
+                                  }}
+                                />
                               </div>
-                            )}
+                              <span className="text-[10px] font-bold text-[#6b7e6d] shrink-0">10</span>
+                              <span className="text-xs font-black text-[#1a231b] shrink-0 w-8 text-right">{score}/10</span>
+                            </div>
                           </div>
                         )
                       })}

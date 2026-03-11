@@ -246,41 +246,65 @@ ${scan.nutrition_data.recommendations?.join('\n') || 'No recommendations availab
         </Card>
 
         {/* Personal Health Impacts */}
-        {scan.nutrition_data.personal_health_impacts && scan.nutrition_data.personal_health_impacts.length > 0 && (
-          <Card className="mb-6 border-border/50">
-            <CardHeader>
-              <CardTitle className="text-lg">Personal Health Profile Impact</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {scan.nutrition_data.personal_health_impacts.map((impact, i) => {
-                const impactColors = {
-                  safe: 'bg-green-500/10 border-green-500/30',
-                  caution: 'bg-yellow-500/10 border-yellow-500/30',
-                  warning: 'bg-orange-500/10 border-orange-500/30',
-                  danger: 'bg-red-500/10 border-red-500/30',
-                }
-                return (
-                  <div key={i} className={`rounded-lg border-2 p-4 ${impactColors[impact.impact_level]}`}>
-                    <div className="mb-2 flex items-center justify-between">
-                      <h3 className="font-semibold">{impact.condition}</h3>
-                      <Badge variant="outline">{impact.impact_level.toUpperCase()}</Badge>
-                    </div>
-                    <p className="mb-3 text-sm text-muted-foreground">{impact.explanation}</p>
-                    {impact.ingredients_of_concern.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {impact.ingredients_of_concern.map((ing, j) => (
-                          <Badge key={j} variant="secondary" className="text-xs">
-                            {ing}
-                          </Badge>
-                        ))}
+        {scan.nutrition_data.personal_health_impacts && scan.nutrition_data.personal_health_impacts.length > 0 && (() => {
+          const getScore = (level: string) => ({ safe: 2, caution: 4, warning: 7, danger: 9 }[level] ?? 5)
+          const getLabel = (s: number) => s <= 3 ? 'Low Risk' : s <= 5 ? 'Moderate' : s <= 7 ? 'High Risk' : 'Avoid'
+          const getColor = (level: string) => ({
+            safe:    { text: '#2bb554', bg: 'rgba(62,207,102,0.12)',  border: 'rgba(62,207,102,0.3)',  dot: '#3ecf66' },
+            caution: { text: '#b39c00', bg: 'rgba(245,217,10,0.12)',  border: 'rgba(245,217,10,0.3)',  dot: '#f5d90a' },
+            warning: { text: '#cc8d1a', bg: 'rgba(255,176,32,0.12)',  border: 'rgba(255,176,32,0.3)',  dot: '#ffb020' },
+            danger:  { text: '#dc2626', bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)',   dot: '#ff4b4b' },
+          }[level] ?? { text: '#6b7e6d', bg: 'rgba(107,126,109,0.08)', border: 'rgba(107,126,109,0.2)', dot: '#6b7e6d' })
+          return (
+            <Card className="mb-6 border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg">Personal Health Profile Impact</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-0 divide-y divide-border/40">
+                {scan.nutrition_data.personal_health_impacts
+                  .sort((a, b) => ({ danger: 0, warning: 1, caution: 2, safe: 3 }[a.impact_level] ?? 4) - ({ danger: 0, warning: 1, caution: 2, safe: 3 }[b.impact_level] ?? 4))
+                  .map((impact, i) => {
+                    const score = getScore(impact.impact_level)
+                    const percent = ((score - 1) / 9) * 100
+                    const c = getColor(impact.impact_level)
+                    const oneLiner = (() => {
+                      const first = impact.explanation.split(/\.\s/)[0].replace(/\.$/, '')
+                      return first.length > 90 ? first.slice(0, 87) + '…' : first
+                    })()
+                    return (
+                      <div key={i} className="flex flex-col gap-2 py-4">
+                        {/* Top row */}
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-sm">{impact.condition}</span>
+                          <span
+                            className="text-[11px] font-black uppercase tracking-wide px-2.5 py-0.5 rounded-full shrink-0"
+                            style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+                          >
+                            {getLabel(score)}
+                          </span>
+                        </div>
+                        {/* 1-liner */}
+                        <p className="text-sm text-muted-foreground">{oneLiner}.</p>
+                        {/* Scale bar */}
+                        <div className="flex items-center gap-3 pt-1">
+                          <span className="text-[10px] font-bold text-muted-foreground shrink-0">1</span>
+                          <div className="relative flex-1 h-2 rounded-full overflow-visible bg-muted">
+                            <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(to right, #22c55e, #eab308 40%, #f97316 65%, #ef4444)' }} />
+                            <div
+                              className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 border-background shadow-md"
+                              style={{ left: `calc(${percent}% - 8px)`, background: c.dot }}
+                            />
+                          </div>
+                          <span className="text-[10px] font-bold text-muted-foreground shrink-0">10</span>
+                          <span className="text-xs font-black shrink-0 w-8 text-right">{score}/10</span>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                )
-              })}
-            </CardContent>
-          </Card>
-        )}
+                    )
+                  })}
+              </CardContent>
+            </Card>
+          )
+        })()}
 
         {/* Nutrition Facts */}
         <Card className="mb-6 border-border/50">

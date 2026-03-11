@@ -586,6 +586,64 @@ function GuestNutritionResults({
         </CardHeader>
       </Card>
 
+      {/* Personal Health Impacts */}
+      {data.personal_health_impacts && data.personal_health_impacts.length > 0 && (() => {
+        const getScore = (level: string): number => ({ safe: 2, caution: 4, warning: 7, danger: 9 }[level] ?? 5)
+        const getLabel = (s: number): string => s <= 3 ? 'Low Risk' : s <= 5 ? 'Moderate' : s <= 7 ? 'High Risk' : 'Avoid'
+        const getC = (level: string) => ({
+          safe:    { text: '#2bb554', bg: 'rgba(62,207,102,0.1)',  border: 'rgba(62,207,102,0.3)',  icon: '🛡️' },
+          caution: { text: '#b39c00', bg: 'rgba(245,217,10,0.1)',  border: 'rgba(245,217,10,0.3)',  icon: '💡' },
+          warning: { text: '#cc8d1a', bg: 'rgba(255,176,32,0.1)',  border: 'rgba(255,176,32,0.3)',  icon: '⚠️' },
+          danger:  { text: '#dc2626', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)',   icon: '🚫' },
+        }[level] ?? { text: '#6b7e6d', bg: 'rgba(107,126,109,0.08)', border: 'rgba(107,126,109,0.2)', icon: 'ℹ️' })
+        return (
+          <Card className="border-border/50 bg-card/50">
+            <CardHeader>
+              <CardTitle className="text-lg">How This Affects You</CardTitle>
+            </CardHeader>
+            <CardContent className="divide-y divide-border/40 space-y-0 px-4">
+              {data.personal_health_impacts!
+                .sort((a, b) => ({ danger: 0, warning: 1, caution: 2, safe: 3 }[a.impact_level] ?? 4) - ({ danger: 0, warning: 1, caution: 2, safe: 3 }[b.impact_level] ?? 4))
+                .map((impact, i) => {
+                  const score = getScore(impact.impact_level)
+                  const percent = ((score - 1) / 9) * 100
+                  const c = getC(impact.impact_level)
+                  const oneLiner = (() => {
+                    const first = impact.explanation.split(/\.\s/)[0].replace(/\.$/, '')
+                    return first.length > 90 ? first.slice(0, 87) + '…' : first
+                  })()
+                  return (
+                    <div key={i} className="flex flex-col gap-2 py-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-sm">{c.icon} {impact.condition}</span>
+                        <span
+                          className="text-[11px] font-black uppercase tracking-wide px-2.5 py-0.5 rounded-full shrink-0"
+                          style={{ background: c.bg, color: c.text, border: `1px solid ${c.border}` }}
+                        >
+                          {getLabel(score)}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{oneLiner}.</p>
+                      <div className="flex items-center gap-3 pt-1">
+                        <span className="text-[10px] font-bold text-muted-foreground shrink-0">1</span>
+                        <div className="relative flex-1 h-2 rounded-full overflow-visible bg-muted">
+                          <div className="absolute inset-0 rounded-full" style={{ background: 'linear-gradient(to right, #22c55e, #eab308 40%, #f97316 65%, #ef4444)' }} />
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 border-background shadow-md"
+                            style={{ left: `calc(${percent}% - 8px)`, background: percent > 65 ? '#ef4444' : percent > 40 ? '#f97316' : '#22c55e' }}
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground shrink-0">10</span>
+                        <span className="text-xs font-black shrink-0 w-8 text-right">{score}/10</span>
+                      </div>
+                    </div>
+                  )
+                })}
+            </CardContent>
+          </Card>
+        )
+      })()}
+
       {/* Macros */}
       <Card className="border-border/50 bg-card/50">
         <CardHeader>

@@ -118,6 +118,84 @@ function getImpactBadgeStyle(level: string) {
   }
 }
 
+// Maps impact level to a risk score (1 = safest, 10 = most risky)
+function getImpactScore(level: string): number {
+  switch (level) {
+    case 'safe':    return 2
+    case 'caution': return 4
+    case 'warning': return 7
+    case 'danger':  return 9
+    default:        return 5
+  }
+}
+
+// Returns a short summary label for the scale
+function getScoreLabel(score: number): string {
+  if (score <= 3) return 'Low Risk'
+  if (score <= 5) return 'Moderate'
+  if (score <= 7) return 'High Risk'
+  return 'Avoid'
+}
+
+function ImpactScaleRow({ impact }: { impact: PersonalHealthImpact }) {
+  const score = getImpactScore(impact.impact_level)
+  const percent = ((score - 1) / 9) * 100 // position along the bar
+
+  // derive a short 1-liner: first sentence only, capped at 80 chars
+  const oneLiner = (() => {
+    const first = impact.explanation.split(/\.\s/)[0].replace(/\.$/, '')
+    return first.length > 90 ? first.slice(0, 87) + '…' : first
+  })()
+
+  return (
+    <div className="flex flex-col gap-2 py-3 border-b last:border-b-0" style={{ borderColor: 'rgba(196, 204, 197, 0.35)' }}>
+      {/* Top row: icon + condition + score label */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          {getImpactIcon(impact.impact_level)}
+          <span className="font-bold text-sm text-[#1a231b] truncate">{impact.condition}</span>
+        </div>
+        <span
+          className="text-[11px] font-black uppercase tracking-wide px-2 py-0.5 rounded-full shrink-0"
+          style={{
+            background: getImpactBadgeStyle(impact.impact_level).bg,
+            color: getImpactBadgeStyle(impact.impact_level).color,
+            border: getImpactBadgeStyle(impact.impact_level).border,
+          }}
+        >
+          {getScoreLabel(score)}
+        </span>
+      </div>
+
+      {/* 1-liner */}
+      <p className="text-xs leading-relaxed" style={{ color: THEME.textMuted }}>{oneLiner}.</p>
+
+      {/* Scale bar */}
+      <div className="flex items-center gap-3">
+        <span className="text-[10px] font-bold shrink-0" style={{ color: THEME.textMuted }}>1</span>
+        <div className="relative flex-1 h-2 rounded-full overflow-visible" style={{ background: 'rgba(0,0,0,0.07)' }}>
+          {/* Gradient track */}
+          <div
+            className="absolute inset-0 rounded-full"
+            style={{ background: 'linear-gradient(to right, #3ecf66, #f5d90a 40%, #ffb020 65%, #ff4b4b)' }}
+          />
+          {/* Pointer dot */}
+          <div
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-4 rounded-full border-2 border-white shadow-md transition-all duration-500"
+            style={{
+              left: `calc(${percent}% - 8px)`,
+              background: percent > 65 ? '#ff4b4b' : percent > 40 ? '#ffb020' : '#3ecf66',
+              boxShadow: '0 1px 6px rgba(0,0,0,0.25)'
+            }}
+          />
+        </div>
+        <span className="text-[10px] font-bold shrink-0" style={{ color: THEME.textMuted }}>10</span>
+        <span className="text-xs font-black shrink-0 w-8 text-right" style={{ color: THEME.textMain }}>{score}/10</span>
+      </div>
+    </div>
+  )
+}
+
 // Daily values for reference
 const dailyValues = {
   calories: 2000,
@@ -236,56 +314,15 @@ export function NutritionResults({ data, onSave, onReset, isSaving }: NutritionR
             </div>
           </div>
           
-          <div className="space-y-4">
-            {/* Helper function to render impact items */}
+          <div className="divide-y-0">
             {[
-              { impacts: dangerImpacts, label: 'AVOID' },
-              { impacts: warningImpacts, label: 'WARNING' },
-              { impacts: cautionImpacts, label: 'CAUTION' },
-              { impacts: safeImpacts, label: 'SAFE' }
-            ].map(({ impacts, label }) => 
-              impacts.map((impact, i) => {
-                const badgeStyle = getImpactBadgeStyle(impact.impact_level)
-                return (
-                  <InsetCard key={`${impact.impact_level}-${i}`}>
-                    <div className="flex items-start gap-4">
-                      {getImpactIcon(impact.impact_level)}
-                      <div className="flex-1 min-w-0 space-y-2 pt-0.5">
-                        <div className="flex items-start justify-between gap-2 flex-wrap sm:flex-nowrap">
-                          <span className="font-bold text-[#1a231b] leading-tight break-words">{impact.condition}</span>
-                          <span 
-                            className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider whitespace-nowrap"
-                            style={{ 
-                              background: badgeStyle.bg, 
-                              color: badgeStyle.color,
-                              border: badgeStyle.border
-                            }}
-                          >
-                            {label}
-                          </span>
-                        </div>
-                        <p className="text-sm font-medium leading-relaxed truncate whitespace-normal" style={{ color: THEME.textMuted }}>{impact.explanation}</p>
-                        
-                        {impact.ingredients_of_concern && impact.ingredients_of_concern.length > 0 && (
-                          <div className="flex flex-wrap items-center gap-1.5 pt-2">
-                            <span className="text-[10px] uppercase font-bold text-[#1a231b]/50">Contains:</span>
-                            {impact.ingredients_of_concern.map((ing, j) => (
-                              <span 
-                                key={j}
-                                className="px-2 py-0.5 rounded textxs font-semibold whitespace-nowrap"
-                                style={{ background: 'rgba(0,0,0,0.03)', color: THEME.danger, border: '1px solid rgba(255, 75, 75, 0.2)' }}
-                              >
-                                {ing}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </InsetCard>
-                )
-              })
-            )}
+              ...dangerImpacts,
+              ...warningImpacts,
+              ...cautionImpacts,
+              ...safeImpacts,
+            ].map((impact, i) => (
+              <ImpactScaleRow key={`${impact.impact_level}-${i}`} impact={impact} />
+            ))}
           </div>
         </NeumorphicCard>
       )}
