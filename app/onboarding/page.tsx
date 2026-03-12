@@ -3,13 +3,14 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ChevronLeft, ChevronRight, Leaf, Check, X, Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Check, X, Plus } from 'lucide-react'
+
+const neu = {
+  raised: '8px 8px 20px #c4ccc5, -8px -8px 20px #ffffff',
+  sm:     '4px 4px 10px #c4ccc5, -4px -4px 10px #ffffff',
+  inset:  'inset 3px 3px 8px #c4ccc5, inset -3px -3px 8px #ffffff',
+  pressed:'inset 2px 2px 5px #c0c8c1, inset -2px -2px 5px #f4faf5',
+}
 
 // Step 2: Food Allergies — FDA Big 9 + Mustard (local)
 const ALLERGIES = [
@@ -290,64 +291,76 @@ export default function OnboardingPage() {
   const hasAnySelection = listCategory ? (totalSelections > 0 || noneSelected[listCategory]) : false
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex min-h-screen flex-col pb-28" style={{ background: '#eaf0eb' }}>
       {/* Full Screen Loading Overlay */}
       {isLoading && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary">
-            <Leaf className="h-8 w-8 animate-pulse text-primary-foreground" />
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: '#eaf0eb' }}>
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl" style={{ background: '#eaf0eb', boxShadow: neu.raised }}>
+            <svg className="h-8 w-8 animate-pulse" viewBox="0 0 24 24" fill="none" stroke="#3ecf66" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+              <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+            </svg>
           </div>
-          <div className="mb-4 h-2 w-48 overflow-hidden rounded-full bg-muted">
-            <div className="h-full w-full animate-[loading_1.5s_ease-in-out_infinite] bg-primary" />
+          <div className="mb-4 h-2 w-48 overflow-hidden rounded-full" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+            <div className="h-full w-full animate-[loading_1.5s_ease-in-out_infinite] rounded-full" style={{ background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)' }} />
           </div>
-          <p className="text-lg font-medium">Saving your preferences...</p>
-          <p className="text-sm text-muted-foreground">Setting up your personalized experience</p>
+          <p className="text-lg font-black text-[#1a231b]">Saving your preferences...</p>
+          <p className="text-sm text-[#6b7e6d]">Setting up your personalized experience</p>
         </div>
       )}
 
       {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4">
+      <header className="sticky top-0 z-50 px-4 pt-3 pb-2" style={{ background: '#eaf0eb' }}>
+        <div className="mx-auto flex h-14 max-w-2xl items-center justify-between rounded-2xl px-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-              <Leaf className="h-4 w-4 text-primary-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-xl" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="#3ecf66" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
+              </svg>
             </div>
-            <span className="font-semibold">NutriScan</span>
+            <span className="text-base font-black tracking-tight text-[#1a231b]">NutriScan</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleSkip} disabled={isLoading}>
+          <button
+            onClick={handleSkip}
+            disabled={isLoading}
+            className="rounded-xl px-4 py-2 text-xs font-bold text-[#6b7e6d] transition-all hover:scale-105 hover:text-[#3ecf66] active:scale-95 disabled:opacity-50"
+            style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+          >
             Skip for now
-          </Button>
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-8">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6">
         {/* Progress */}
-        <div className="mb-8">
-          <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
-            <span>Step {currentStep + 1} of {STEPS.length}</span>
-            <span>{Math.round(((currentStep + 1) / STEPS.length) * 100)}% complete</span>
+        <div className="mb-6 rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Step {currentStep + 1} of {STEPS.length}</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-[#3ecf66]">{Math.round(((currentStep + 1) / STEPS.length) * 100)}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div 
-              className="h-full bg-primary transition-all duration-500"
-              style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
+          <div className="h-2 overflow-hidden rounded-full" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+            <div
+              className="h-full rounded-full transition-all duration-500"
+              style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%`, background: 'linear-gradient(90deg, #3ecf66, #2bb554)' }}
             />
           </div>
         </div>
 
-        {/* Step Content */}
-        <div className="mb-8">
-          <h1 className="mb-2 text-2xl font-bold">{step.title}</h1>
-          <p className="text-muted-foreground">{step.subtitle}</p>
+        {/* Step Title */}
+        <div className="mb-6">
+          <h1 className="mb-1 text-2xl font-black text-[#1a231b]" style={{ fontFamily: 'Playfair Display, serif' }}>{step.title}</h1>
+          <p className="text-sm text-[#6b7e6d]">{step.subtitle}</p>
         </div>
 
         {/* Step 1: Body Metrics */}
         {step.type === 'metrics' && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="height">Height (cm)</Label>
-                <Input
+              {/* Height */}
+              <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+                <label htmlFor="height" className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Height (cm)</label>
+                <input
                   id="height"
                   type="number"
                   placeholder="e.g. 170"
@@ -355,11 +368,14 @@ export default function OnboardingPage() {
                   max={300}
                   value={bodyMetrics.height}
                   onChange={(e) => setBodyMetrics(prev => ({ ...prev, height: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm font-bold text-[#1a231b] outline-none placeholder:text-[#b0bab1]"
+                  style={{ background: '#eaf0eb', boxShadow: neu.pressed }}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="weight">Weight (kg)</Label>
-                <Input
+              {/* Weight */}
+              <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+                <label htmlFor="weight" className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Weight (kg)</label>
+                <input
                   id="weight"
                   type="number"
                   placeholder="e.g. 70"
@@ -367,11 +383,14 @@ export default function OnboardingPage() {
                   max={500}
                   value={bodyMetrics.weight}
                   onChange={(e) => setBodyMetrics(prev => ({ ...prev, weight: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm font-bold text-[#1a231b] outline-none placeholder:text-[#b0bab1]"
+                  style={{ background: '#eaf0eb', boxShadow: neu.pressed }}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
+              {/* Age */}
+              <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+                <label htmlFor="age" className="mb-2 block text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Age</label>
+                <input
                   id="age"
                   type="number"
                   placeholder="e.g. 28"
@@ -379,54 +398,58 @@ export default function OnboardingPage() {
                   max={150}
                   value={bodyMetrics.age}
                   onChange={(e) => setBodyMetrics(prev => ({ ...prev, age: e.target.value }))}
+                  className="w-full rounded-xl px-4 py-3 text-sm font-bold text-[#1a231b] outline-none placeholder:text-[#b0bab1]"
+                  style={{ background: '#eaf0eb', boxShadow: neu.pressed }}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="sex">Biological Sex</Label>
-                <Select
-                  value={bodyMetrics.biological_sex}
-                  onValueChange={(value) => setBodyMetrics(prev => ({ ...prev, biological_sex: value }))}
-                >
-                  <SelectTrigger id="sex">
-                    <SelectValue placeholder="Select" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="other">Prefer not to say</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Biological Sex */}
+              <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Biological Sex</p>
+                <div className="flex gap-2">
+                  {[{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }, { value: 'other', label: 'Other' }].map(opt => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setBodyMetrics(prev => ({ ...prev, biological_sex: opt.value }))}
+                      className="flex-1 rounded-xl px-3 py-2.5 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+                      style={bodyMetrics.biological_sex === opt.value
+                        ? { background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', color: '#fff', boxShadow: '3px 3px 7px #becea5' }
+                        : { background: '#eaf0eb', color: '#6b7e6d', boxShadow: neu.sm }
+                      }
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
             {/* BMI Display */}
             {bmi !== null && (
-              <Card className="border-primary/30 bg-primary/5">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">Your BMI</p>
-                      <p className="text-3xl font-bold">{bmi.toFixed(1)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-muted-foreground">Category</p>
-                      <p className="text-lg font-semibold text-primary">{getBmiCategory(bmi)}</p>
-                    </div>
+              <div className="rounded-3xl p-5" style={{ background: '#eaf0eb', boxShadow: neu.raised }}>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Your BMI</p>
+                    <p className="text-4xl font-black text-[#1a231b]">{bmi.toFixed(1)}</p>
                   </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full bg-primary transition-all duration-500"
-                      style={{ width: `${Math.min(Math.max((bmi / 40) * 100, 5), 100)}%` }}
-                    />
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Category</p>
+                    <p className="text-xl font-black text-[#3ecf66]">{getBmiCategory(bmi)}</p>
                   </div>
-                  <div className="mt-1 flex justify-between text-xs text-muted-foreground">
-                    <span>Underweight</span>
-                    <span>Normal</span>
-                    <span>Overweight</span>
-                    <span>Obese</span>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="mt-4 h-2 overflow-hidden rounded-full" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(Math.max((bmi / 40) * 100, 5), 100)}%`, background: 'linear-gradient(90deg, #3ecf66, #2bb554)' }}
+                  />
+                </div>
+                <div className="mt-1.5 flex justify-between text-[10px] font-semibold text-[#6b7e6d]">
+                  <span>Underweight</span>
+                  <span>Normal</span>
+                  <span>Overweight</span>
+                  <span>Obese</span>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -434,46 +457,66 @@ export default function OnboardingPage() {
         {/* Steps 2-6: List-Based Selection */}
         {step.type === 'list' && listCategory && (
           <>
-            {/* None Option (not shown for health_goals) */}
+            {/* None Option */}
             {step.noneLabel && (
-              <Card 
-                className={`mb-4 cursor-pointer transition-all hover:border-primary/50 ${
-                  noneSelected[listCategory] ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''
-                }`}
+              <div
+                className="mb-4 cursor-pointer rounded-2xl p-4 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                style={{
+                  background: noneSelected[listCategory] ? 'linear-gradient(135deg, rgba(62,207,102,0.08), rgba(43,181,84,0.05))' : '#eaf0eb',
+                  boxShadow: noneSelected[listCategory] ? 'inset 3px 3px 8px #c4ccc5, inset -3px -3px 8px #ffffff' : neu.sm,
+                  border: noneSelected[listCategory] ? '1px solid rgba(62,207,102,0.3)' : '1px solid transparent',
+                }}
                 onClick={() => toggleNone(listCategory)}
               >
-                <CardContent className="flex items-center gap-3 p-4">
-                  <Checkbox checked={noneSelected[listCategory]} className="mt-0.5" />
-                  <div className="flex-1">
-                    <Label className="cursor-pointer font-medium">None</Label>
-                    <p className="text-sm text-muted-foreground">{step.noneLabel}</p>
+                <div className="flex items-center gap-3">
+                  <div
+                    className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-all"
+                    style={noneSelected[listCategory]
+                      ? { background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '2px 2px 5px #becea5' }
+                      : { background: '#eaf0eb', boxShadow: neu.inset }
+                    }
+                  >
+                    {noneSelected[listCategory] && <Check className="h-3 w-3 text-white" />}
                   </div>
-                  {noneSelected[listCategory] && <Check className="h-5 w-5 text-primary" />}
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-sm font-bold text-[#1a231b]">None</p>
+                    <p className="text-xs text-[#6b7e6d]">{step.noneLabel}</p>
+                  </div>
+                </div>
+              </div>
             )}
 
             {/* Options Grid */}
-            <div className={`mb-4 grid gap-3 sm:grid-cols-2 ${noneSelected[listCategory] ? 'pointer-events-none opacity-50' : ''}`}>
+            <div className={`mb-4 grid gap-3 sm:grid-cols-2 ${noneSelected[listCategory] ? 'pointer-events-none opacity-40' : ''}`}>
               {step.data.map((item) => {
                 const isSelected = selections[listCategory].includes(item.id)
                 return (
-                  <Card 
+                  <div
                     key={item.id}
-                    className={`cursor-pointer transition-all hover:border-primary/50 ${
-                      isSelected ? 'border-primary bg-primary/5 ring-1 ring-primary' : ''
-                    }`}
+                    className="cursor-pointer rounded-2xl p-4 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                    style={{
+                      background: isSelected ? 'linear-gradient(135deg, rgba(62,207,102,0.08), rgba(43,181,84,0.05))' : '#eaf0eb',
+                      boxShadow: isSelected ? 'inset 3px 3px 8px #c4ccc5, inset -3px -3px 8px #ffffff' : neu.sm,
+                      border: isSelected ? '1px solid rgba(62,207,102,0.3)' : '1px solid transparent',
+                    }}
                     onClick={() => toggleSelection(listCategory, item.id)}
                   >
-                    <CardContent className="flex items-start gap-3 p-4">
-                      <Checkbox checked={isSelected} className="mt-0.5" />
-                      <div className="flex-1">
-                        <Label className="cursor-pointer font-medium">{item.label}</Label>
-                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition-all"
+                        style={isSelected
+                          ? { background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '2px 2px 5px #becea5' }
+                          : { background: '#eaf0eb', boxShadow: neu.inset }
+                        }
+                      >
+                        {isSelected && <Check className="h-3 w-3 text-white" />}
                       </div>
-                      {isSelected && <Check className="h-5 w-5 text-primary" />}
-                    </CardContent>
-                  </Card>
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-[#1a231b]">{item.label}</p>
+                        <p className="text-xs text-[#6b7e6d]">{item.description}</p>
+                      </div>
+                    </div>
+                  </div>
                 )
               })}
             </div>
@@ -481,17 +524,18 @@ export default function OnboardingPage() {
             {/* Custom Items Display */}
             {customInputs[listCategory].length > 0 && !noneSelected[listCategory] && (
               <div className="mb-4">
-                <p className="mb-2 text-sm font-medium text-muted-foreground">Custom items:</p>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Custom items</p>
                 <div className="flex flex-wrap gap-2">
                   {customInputs[listCategory].map((item, index) => (
-                    <span 
+                    <span
                       key={index}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+                      className="inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold text-[#3ecf66]"
+                      style={{ background: 'rgba(62,207,102,0.1)', border: '1px solid rgba(62,207,102,0.2)' }}
                     >
                       {item}
                       <button
                         onClick={() => removeCustomItem(listCategory, item)}
-                        className="ml-1 rounded-full p-0.5 hover:bg-primary/20"
+                        className="ml-1 rounded-full p-0.5 transition-colors hover:bg-[rgba(62,207,102,0.2)]"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -503,63 +547,76 @@ export default function OnboardingPage() {
 
             {/* Add Custom Option */}
             {!noneSelected[listCategory] && (
-              <div className="mb-8">
+              <div className="mb-6">
                 {showCustomInput ? (
                   <div className="flex gap-2">
-                    <Input
+                    <input
                       placeholder="Enter items (comma-separated)..."
                       value={customValue}
                       onChange={(e) => setCustomValue(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && addCustomItems()}
                       autoFocus
-                      className="flex-1"
+                      className="flex-1 rounded-xl px-4 py-3 text-sm font-medium text-[#1a231b] outline-none placeholder:text-[#b0bab1]"
+                      style={{ background: '#eaf0eb', boxShadow: neu.pressed }}
                     />
-                    <Button onClick={addCustomItems} disabled={!customValue.trim()}>
+                    <button
+                      onClick={addCustomItems}
+                      disabled={!customValue.trim()}
+                      className="rounded-xl px-4 py-3 text-xs font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                      style={{ background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '3px 3px 7px #becea5' }}
+                    >
                       Add
-                    </Button>
-                    <Button variant="outline" onClick={() => { setShowCustomInput(false); setCustomValue('') }}>
+                    </button>
+                    <button
+                      onClick={() => { setShowCustomInput(false); setCustomValue('') }}
+                      className="rounded-xl px-4 py-3 text-xs font-bold text-[#6b7e6d] transition-all hover:scale-105 active:scale-95"
+                      style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                    >
                       Cancel
-                    </Button>
+                    </button>
                   </div>
                 ) : (
-                  <Card 
-                    className="cursor-pointer border-dashed transition-all hover:border-primary/50 hover:bg-muted/50"
+                  <div
+                    className="cursor-pointer rounded-2xl border border-dashed border-[#b0bab1] p-4 transition-all hover:scale-[1.01] hover:border-[#3ecf66] active:scale-[0.99]"
+                    style={{ background: '#eaf0eb' }}
                     onClick={() => setShowCustomInput(true)}
                   >
-                    <CardContent className="flex items-center gap-3 p-4">
-                      <div className="flex h-5 w-5 items-center justify-center rounded border-2 border-dashed border-muted-foreground/50">
-                        <Plus className="h-3 w-3 text-muted-foreground" />
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-5 w-5 items-center justify-center rounded-md" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+                        <Plus className="h-3 w-3 text-[#6b7e6d]" />
                       </div>
                       <div>
-                        <Label className="cursor-pointer font-medium">Other (Specify)</Label>
-                        <p className="text-sm text-muted-foreground">Add custom items not listed above (comma-separated)</p>
+                        <p className="text-sm font-bold text-[#1a231b]">Other (Specify)</p>
+                        <p className="text-xs text-[#6b7e6d]">Add custom items not listed above (comma-separated)</p>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 )}
               </div>
             )}
 
             {/* Selection Summary */}
             {hasAnySelection && !noneSelected[listCategory] && totalSelections > 0 && (
-              <div className="mb-8 rounded-xl bg-muted/50 p-4">
-                <p className="mb-2 text-sm font-medium">Selected ({totalSelections})</p>
+              <div className="mb-6 rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-[#6b7e6d]">Selected ({totalSelections})</p>
                 <div className="flex flex-wrap gap-2">
                   {selections[listCategory].map(id => {
                     const item = step.data.find(d => d.id === id)
                     return (
-                      <span 
+                      <span
                         key={id}
-                        className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+                        className="rounded-full px-3 py-1 text-xs font-semibold text-[#3ecf66]"
+                        style={{ background: 'rgba(62,207,102,0.1)', border: '1px solid rgba(62,207,102,0.2)' }}
                       >
                         {item?.label}
                       </span>
                     )
                   })}
                   {customInputs[listCategory].map((item, index) => (
-                    <span 
+                    <span
                       key={`custom-${index}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-sm text-primary"
+                      className="rounded-full px-3 py-1 text-xs font-semibold text-[#3ecf66]"
+                      style={{ background: 'rgba(62,207,102,0.1)', border: '1px solid rgba(62,207,102,0.2)' }}
                     >
                       {item}
                     </span>
@@ -571,19 +628,21 @@ export default function OnboardingPage() {
         )}
 
         {/* Navigation */}
-        <div className="flex items-center justify-between">
-          <Button 
-            variant="outline" 
+        <div className="flex items-center justify-between pt-2">
+          <button
             onClick={handleBack}
             disabled={currentStep === 0 || isLoading}
+            className="flex items-center gap-1 rounded-xl px-5 py-3 text-sm font-bold text-[#6b7e6d] transition-all hover:scale-105 active:scale-95 disabled:opacity-40"
+            style={{ background: '#eaf0eb', boxShadow: neu.sm }}
           >
-            <ChevronLeft className="mr-1 h-4 w-4" />
+            <ChevronLeft className="h-4 w-4" />
             Back
-          </Button>
-          <Button 
+          </button>
+          <button
             onClick={handleNext}
             disabled={isLoading}
-            className="min-w-[120px]"
+            className="flex min-w-[120px] items-center justify-center gap-1 rounded-xl px-6 py-3 text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+            style={{ background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', boxShadow: '4px 4px 10px #becea5, -2px -2px 6px #ffffff' }}
           >
             {isLoading ? (
               <span className="flex items-center gap-2">
@@ -595,10 +654,10 @@ export default function OnboardingPage() {
             ) : (
               <>
                 Next
-                <ChevronRight className="ml-1 h-4 w-4" />
+                <ChevronRight className="h-4 w-4" />
               </>
             )}
-          </Button>
+          </button>
         </div>
       </main>
     </div>
