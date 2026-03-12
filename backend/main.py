@@ -79,6 +79,12 @@ def build_health_context(health_profile: dict | None) -> str:
         return ""
     
     profile_parts = []
+    if health_profile.get('bmi') and health_profile.get('bmi_category'):
+        profile_parts.append(f"- BMI: {health_profile['bmi']} ({health_profile['bmi_category']})")
+    if health_profile.get('age'):
+        profile_parts.append(f"- Age: {health_profile['age']}")
+    if health_profile.get('biological_sex'):
+        profile_parts.append(f"- Biological Sex: {health_profile['biological_sex']}")
     if health_profile.get('allergies'):
         profile_parts.append(f"- Allergies: {', '.join(health_profile['allergies'])}")
     if health_profile.get('intolerances'):
@@ -87,6 +93,8 @@ def build_health_context(health_profile: dict | None) -> str:
         profile_parts.append(f"- Medical Conditions: {', '.join(health_profile['medical_conditions'])}")
     if health_profile.get('dietary_lifestyles'):
         profile_parts.append(f"- Dietary Preferences: {', '.join(health_profile['dietary_lifestyles'])}")
+    if health_profile.get('health_goals'):
+        profile_parts.append(f"- Health Goals: {', '.join(health_profile['health_goals'])}")
     
     if profile_parts:
         return "\n\nUser Health Profile:\n" + "\n".join(profile_parts)

@@ -16,6 +16,13 @@ interface HealthProfile {
   intolerances: string[]
   medical_conditions: string[]
   dietary_lifestyles: string[]
+  health_goals: string[]
+  height?: number | null
+  weight?: number | null
+  age?: number | null
+  biological_sex?: string | null
+  bmi?: number | null
+  bmi_category?: string | null
 }
 
 interface Question {
@@ -96,7 +103,7 @@ export default function ScanPage() {
       if (user) {
         const { data } = await supabase
           .from('health_profiles')
-          .select('allergies, intolerances, medical_conditions, dietary_lifestyles')
+          .select('allergies, intolerances, medical_conditions, dietary_lifestyles, health_goals, height, weight, age, biological_sex, bmi, bmi_category')
           .eq('user_id', user.id)
           .single()
         

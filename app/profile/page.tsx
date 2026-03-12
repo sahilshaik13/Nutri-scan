@@ -7,7 +7,7 @@ import Link from 'next/link'
 import {
   ChevronLeft, Leaf, User, Mail, Calendar,
   AlertTriangle, Heart, Activity, Utensils,
-  Pencil, Check, X, LogOut,
+  Pencil, Check, X, LogOut, Ruler, Weight, Target,
 } from 'lucide-react'
 
 const neu = {
@@ -20,23 +20,37 @@ const neu = {
 interface HealthProfile {
   full_name: string | null
   age: number | null
+  height: number | null
+  weight: number | null
+  biological_sex: string | null
+  bmi: number | null
+  bmi_category: string | null
   allergies: string[]
   intolerances: string[]
   medical_conditions: string[]
   dietary_lifestyles: string[]
+  health_goals: string[]
 }
 
-const ALLERGY_OPTIONS = ['Gluten','Dairy','Eggs','Peanuts','Tree Nuts','Soy','Fish','Shellfish','Wheat','Sesame','Mustard','Celery','Lupin','Molluscs']
-const INTOLERANCE_OPTIONS = ['Lactose','Fructose','Histamine','Sulfites','Salicylates','FODMAPs','Caffeine','Alcohol','Artificial Sweeteners','MSG']
-const CONDITION_OPTIONS = ['Diabetes Type 1','Diabetes Type 2','Hypertension','High Cholesterol','Heart Disease','Kidney Disease','IBS','Crohn\'s Disease','Celiac Disease','GERD','Gout','Anemia','Thyroid Disorder','PCOS']
-const LIFESTYLE_OPTIONS = ['Vegetarian','Vegan','Pescatarian','Keto','Paleo','Mediterranean','Low Carb','Low Fat','Low Sodium','Halal','Kosher','Gluten Free','Dairy Free','Organic Only','No Processed Foods']
+const ALLERGY_OPTIONS = ['gluten','dairy','peanuts','tree_nuts','eggs','soy','shellfish','fish','sesame','mustard']
+const ALLERGY_LABELS: Record<string,string> = { gluten:'Gluten', dairy:'Dairy', peanuts:'Peanuts', tree_nuts:'Tree Nuts', eggs:'Eggs', soy:'Soy', shellfish:'Shellfish', fish:'Fish', sesame:'Sesame', mustard:'Mustard' }
+const INTOLERANCE_OPTIONS = ['lactose','gluten_sensitivity','caffeine','alcohol','msg','artificial_sweeteners','histamine','fodmap','fructose','sulfites','spicy_food','fried_food']
+const INTOLERANCE_LABELS: Record<string,string> = { lactose:'Lactose', gluten_sensitivity:'Gluten Sensitivity', caffeine:'Caffeine', alcohol:'Alcohol', msg:'MSG', artificial_sweeteners:'Artificial Sweeteners', histamine:'Histamine', fodmap:'FODMAP Sensitivity', fructose:'Fructose', sulfites:'Sulfites', spicy_food:'Spicy Food', fried_food:'Fried Food' }
+const CONDITION_OPTIONS = ['diabetes_type1','diabetes_type2','hypertension','high_cholesterol','pcos','thyroid_disorders','kidney_disease','heart_disease','obesity','gerd','anemia']
+const CONDITION_LABELS: Record<string,string> = { diabetes_type1:'Type 1 Diabetes', diabetes_type2:'Type 2 Diabetes', hypertension:'Hypertension', high_cholesterol:'High Cholesterol', pcos:'PCOS / PCOD', thyroid_disorders:'Thyroid Disorders', kidney_disease:'Kidney Disease', heart_disease:'Heart Disease', obesity:'Obesity', gerd:'Acid Reflux (GERD)', anemia:'Anemia' }
+const LIFESTYLE_OPTIONS = ['vegetarian','vegan','keto','low_carb','low_fat','low_sodium','gluten_free','dairy_free','high_protein','mediterranean']
+const LIFESTYLE_LABELS: Record<string,string> = { vegetarian:'Vegetarian', vegan:'Vegan', keto:'Keto', low_carb:'Low Carb', low_fat:'Low Fat', low_sodium:'Low Sodium', gluten_free:'Gluten-Free', dairy_free:'Dairy-Free', high_protein:'High Protein', mediterranean:'Mediterranean Diet' }
+const GOAL_OPTIONS = ['weight_loss','muscle_gain','heart_health','blood_sugar','reduce_cholesterol','gut_health','maintain_weight','increase_energy','balanced_nutrition','improve_metabolism']
+const GOAL_LABELS: Record<string,string> = { weight_loss:'Weight Loss', muscle_gain:'Muscle Gain', heart_health:'Improve Heart Health', blood_sugar:'Control Blood Sugar', reduce_cholesterol:'Reduce Cholesterol', gut_health:'Improve Gut Health', maintain_weight:'Maintain Weight', increase_energy:'Increase Energy', balanced_nutrition:'Balanced Nutrition', improve_metabolism:'Improve Metabolism' }
+const SEX_OPTIONS = ['male','female','other']
+const SEX_LABELS: Record<string,string> = { male:'Male', female:'Female', other:'Prefer not to say' }
 
 export default function ProfilePage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [email, setEmail] = useState('')
-  const [profile, setProfile] = useState<HealthProfile>({ full_name: null, age: null, allergies: [], intolerances: [], medical_conditions: [], dietary_lifestyles: [] })
+  const [profile, setProfile] = useState<HealthProfile>({ full_name: null, age: null, height: null, weight: null, biological_sex: null, bmi: null, bmi_category: null, allergies: [], intolerances: [], medical_conditions: [], dietary_lifestyles: [], health_goals: [] })
   const [editMode, setEditMode] = useState<string | null>(null)
   const [tempValue, setTempValue] = useState<string | number | string[]>('')
 
@@ -47,7 +61,7 @@ export default function ProfilePage() {
       if (!user) { router.push('/auth/login'); return }
       setEmail(user.email || '')
       const { data } = await supabase.from('health_profiles').select('*').eq('user_id', user.id).single()
-      if (data) setProfile({ full_name: data.full_name, age: data.age, allergies: data.allergies || [], intolerances: data.intolerances || [], medical_conditions: data.medical_conditions || [], dietary_lifestyles: data.dietary_lifestyles || [] })
+      if (data) setProfile({ full_name: data.full_name, age: data.age, height: data.height, weight: data.weight, biological_sex: data.biological_sex, bmi: data.bmi, bmi_category: data.bmi_category, allergies: data.allergies || [], intolerances: data.intolerances || [], medical_conditions: data.medical_conditions || [], dietary_lifestyles: data.dietary_lifestyles || [], health_goals: data.health_goals || [] })
       setIsLoading(false)
     }
     fetchProfile()
@@ -136,7 +150,9 @@ export default function ProfilePage() {
     </div>
   )
 
-  const ArrayField = ({ field, label, icon, value, options }: { field: string; label: string; icon: React.ReactNode; value: string[]; options: string[] }) => (
+  const ArrayField = ({ field, label, icon, value, options, labels }: { field: string; label: string; icon: React.ReactNode; value: string[]; options: string[]; labels?: Record<string,string> }) => {
+    const getLabel = (id: string) => labels?.[id] || id
+    return (
     <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -178,7 +194,7 @@ export default function ProfilePage() {
                 ? { background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', color: '#fff', boxShadow: '3px 3px 7px #becea5' }
                 : { background: '#eaf0eb', color: '#6b7e6d', boxShadow: neu.sm }
               }>
-              {opt}
+              {getLabel(opt)}
             </button>
           ))}
         </div>
@@ -187,13 +203,13 @@ export default function ProfilePage() {
           {value.map(item => (
             <span key={item} className="rounded-full px-3 py-1 text-xs font-semibold text-[#3ecf66]"
               style={{ background: 'rgba(62,207,102,0.1)', border: '1px solid rgba(62,207,102,0.2)' }}>
-              {item}
+              {getLabel(item)}
             </span>
           ))}
         </div>
       ) : null}
     </div>
-  )
+  )}
 
   return (
     <div className="min-h-screen pb-28" style={{ background: '#eaf0eb' }}>
@@ -244,14 +260,77 @@ export default function ProfilePage() {
           </div>
         </div>
 
+        {/* Body Metrics */}
+        <div className="mb-6">
+          <h3 className="mb-3 ml-1 text-[10px] font-black uppercase tracking-widest text-[#6b7e6d]">Body Metrics</h3>
+          <div className="space-y-3">
+            <EditableField field="height" label="Height (cm)" icon={<Ruler className="h-4 w-4" />} value={profile.height} type="number" />
+            <EditableField field="weight" label="Weight (kg)" icon={<Weight className="h-4 w-4" />} value={profile.weight} type="number" />
+            <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl text-[#3ecf66]" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+                    <User className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#6b7e6d]">Biological Sex</p>
+                    {editMode === 'biological_sex' ? (
+                      <div className="mt-1 flex gap-2">
+                        {SEX_OPTIONS.map(opt => (
+                          <button key={opt} type="button"
+                            onClick={() => { setTempValue(opt); }}
+                            className="rounded-full px-3 py-1 text-xs font-semibold transition-all"
+                            style={tempValue === opt
+                              ? { background: 'linear-gradient(135deg, #3ecf66 0%, #2bb554 100%)', color: '#fff', boxShadow: '3px 3px 7px #becea5' }
+                              : { background: '#eaf0eb', color: '#6b7e6d', boxShadow: neu.sm }
+                            }>
+                            {SEX_LABELS[opt]}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-0.5 text-sm font-bold text-[#1a231b]">{profile.biological_sex ? SEX_LABELS[profile.biological_sex] || profile.biological_sex : 'Not set'}</p>
+                    )}
+                  </div>
+                </div>
+                {editMode === 'biological_sex' ? (
+                  <div className="flex gap-2">
+                    <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#3ecf66]" style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                      onClick={() => handleSave('biological_sex', tempValue as string)} disabled={isSaving}><Check className="h-4 w-4" /></button>
+                    <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7e6d]" style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                      onClick={() => setEditMode(null)}><X className="h-4 w-4" /></button>
+                  </div>
+                ) : (
+                  <button className="flex h-8 w-8 items-center justify-center rounded-lg text-[#6b7e6d] hover:text-[#3ecf66]" style={{ background: '#eaf0eb', boxShadow: neu.sm }}
+                    onClick={() => startEdit('biological_sex', profile.biological_sex)}><Pencil className="h-3.5 w-3.5" /></button>
+                )}
+              </div>
+            </div>
+            {profile.bmi && (
+              <div className="rounded-2xl p-4" style={{ background: '#eaf0eb', boxShadow: neu.sm }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl text-[#3ecf66]" style={{ background: '#eaf0eb', boxShadow: neu.inset }}>
+                    <Activity className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[#6b7e6d]">BMI</p>
+                    <p className="mt-0.5 text-sm font-bold text-[#1a231b]">{profile.bmi} — {profile.bmi_category}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Health Preferences */}
         <div className="mb-6">
           <h3 className="mb-3 ml-1 text-[10px] font-black uppercase tracking-widest text-[#6b7e6d]">Health Preferences</h3>
           <div className="space-y-3">
-            <ArrayField field="allergies" label="Food Allergies" icon={<AlertTriangle className="h-4 w-4" />} value={profile.allergies} options={ALLERGY_OPTIONS} />
-            <ArrayField field="intolerances" label="Food Intolerances" icon={<Heart className="h-4 w-4" />} value={profile.intolerances} options={INTOLERANCE_OPTIONS} />
-            <ArrayField field="medical_conditions" label="Medical Conditions" icon={<Activity className="h-4 w-4" />} value={profile.medical_conditions} options={CONDITION_OPTIONS} />
-            <ArrayField field="dietary_lifestyles" label="Dietary Lifestyle" icon={<Utensils className="h-4 w-4" />} value={profile.dietary_lifestyles} options={LIFESTYLE_OPTIONS} />
+            <ArrayField field="allergies" label="Food Allergies" icon={<AlertTriangle className="h-4 w-4" />} value={profile.allergies} options={ALLERGY_OPTIONS} labels={ALLERGY_LABELS} />
+            <ArrayField field="intolerances" label="Food Intolerances" icon={<Heart className="h-4 w-4" />} value={profile.intolerances} options={INTOLERANCE_OPTIONS} labels={INTOLERANCE_LABELS} />
+            <ArrayField field="medical_conditions" label="Medical Conditions" icon={<Activity className="h-4 w-4" />} value={profile.medical_conditions} options={CONDITION_OPTIONS} labels={CONDITION_LABELS} />
+            <ArrayField field="dietary_lifestyles" label="Dietary Lifestyle" icon={<Utensils className="h-4 w-4" />} value={profile.dietary_lifestyles} options={LIFESTYLE_OPTIONS} labels={LIFESTYLE_LABELS} />
+            <ArrayField field="health_goals" label="Health Goals" icon={<Target className="h-4 w-4" />} value={profile.health_goals} options={GOAL_OPTIONS} labels={GOAL_LABELS} />
           </div>
         </div>
 
